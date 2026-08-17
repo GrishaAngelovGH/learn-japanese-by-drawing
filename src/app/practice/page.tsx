@@ -1,13 +1,15 @@
 "use client"
 
-import { Suspense, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { Suspense, useState, useEffect } from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import words from "@/data/words"
+import { playSwoosh } from "@/lib/audio"
 
 function PracticeContent() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const countParam = searchParams.get("count")
   const sessionCount = countParam ? parseInt(countParam, 10) : 1
@@ -15,12 +17,20 @@ function PracticeContent() {
 
   const [isGoingBack, setIsGoingBack] = useState<boolean>(false)
 
+  // Reset goingBack state when navigating to the practice page so the
+  // button shows "Back" again instead of being stuck disabled
+  useEffect(() => {
+    setIsGoingBack(false)
+  }, [pathname])
+
   const handleBack = () => {
     if (isGoingBack) return
     setIsGoingBack(true)
+    setTimeout(() => playSwoosh(), 700)
     setTimeout(() => {
       router.push("/")
-      setIsGoingBack(false)
+      // keep isGoingBack true until navigation unmounts this page,
+      // so the button stays disabled through the whole transition
     }, 850)
   }
 

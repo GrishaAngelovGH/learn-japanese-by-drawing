@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import words from "@/data/words"
+import { playSwoosh } from "@/lib/audio"
 
 export default function Home() {
   const router = useRouter()
+  const pathname = usePathname()
   const totalWords = words.length
   const minSlider = totalWords >= 10 ? 10 : 1
   const maxSlider = Math.max(minSlider + 1, totalWords)
@@ -18,12 +20,20 @@ export default function Home() {
   )
   const [isStarting, setIsStarting] = useState<boolean>(false)
 
+  // Reset starting state when navigating back to the home page so the
+  // button shows "Start Practice" again instead of "Starting..."
+  useEffect(() => {
+    setIsStarting(false)
+  }, [pathname])
+
   const handleStart = () => {
     if (isStarting) return
     setIsStarting(true)
+    setTimeout(() => playSwoosh(), 700)
     setTimeout(() => {
       router.push(`/practice?count=${selectedCount}`)
-      setIsStarting(false)
+      // keep isStarting true until navigation unmounts this page,
+      // so the button stays "Starting..." through the whole transition
     }, 850)
   }
 

@@ -27,7 +27,9 @@ describe("Practice Page", () => {
     })
 
     expect(mockPush).toHaveBeenCalledWith("/")
-    expect(screen.getByRole("button", { name: "Back" })).toBeEnabled()
+    // button stays disabled through the transition since the page
+    // unmounts on navigation — no need to reset isGoingBack
+    expect(screen.getByRole("button", { name: "Back" })).toBeDisabled()
 
     vi.useRealTimers()
   })

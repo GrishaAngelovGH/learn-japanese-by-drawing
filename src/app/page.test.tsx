@@ -53,7 +53,9 @@ describe("Home Page", () => {
     })
 
     expect(mockPush).toHaveBeenCalledWith("/practice?count=1")
-    expect(screen.getByRole("button", { name: "Start Practice" })).toBeEnabled()
+    // button stays "Starting..." through the transition since the page
+    // unmounts on navigation — no need to reset isStarting
+    expect(screen.getByRole("button", { name: "Starting..." })).toBeDisabled()
 
     vi.useRealTimers()
   })
