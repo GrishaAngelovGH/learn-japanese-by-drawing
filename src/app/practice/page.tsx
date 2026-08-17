@@ -26,10 +26,10 @@ function PracticeContent() {
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col items-center justify-center p-6 antialiased overflow-hidden">
-      <main className={`w-full max-w-lg ${isGoingBack ? "animate-slide-out-right" : "animate-slide-in-right"}`}>
-        <div className="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm space-y-8">
+      <main className={`w-full max-w-2xl ${isGoingBack ? "animate-slide-out-right" : "animate-slide-in-right"}`}>
+        <div className="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm">
           {/* Practice Header */}
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-6 mb-6">
             <Button
               variant="ghost"
               size="sm"
@@ -46,29 +46,53 @@ function PracticeContent() {
             </div>
           </div>
 
-          {/* Sample Word Header */}
-          <div className="space-y-2 text-center">
-            <div className="text-xs uppercase tracking-wider text-zinc-500 font-medium">
-              {currentWord.romaji} • {currentWord.kana}
+          {/* Two-column layout: canvas left, word info right */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left Column: Drawing Canvas */}
+            <div className="h-96 rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 flex flex-col items-center justify-center text-center p-6 space-y-2">
+              <p className="text-sm font-medium text-zinc-700">
+                Drawing Canvas Area
+              </p>
+              <p className="text-xs text-zinc-500 max-w-xs">
+                Character drawing & stroke order engine will be added here next.
+              </p>
             </div>
 
-            <h1 className="text-4xl font-bold tracking-tight text-zinc-900">
-              {currentWord.text}
-            </h1>
-
-            <p className="text-sm font-medium text-orange-600">
-              {currentWord.meaning}
-            </p>
-          </div>
-
-          {/* Placeholder for Drawing Canvas */}
-          <div className="h-64 rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 flex flex-col items-center justify-center text-center p-6 space-y-2">
-            <p className="text-sm font-medium text-zinc-700">
-              Drawing Canvas Area
-            </p>
-            <p className="text-xs text-zinc-500 max-w-xs">
-              Character drawing & stroke order engine will be added here next.
-            </p>
+            {/* Right Column: Word Information */}
+            <div className="space-y-4">
+              <div>
+                <span className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
+                  Japanese Character
+                </span>
+                <h1 className="text-5xl font-bold tracking-tight text-zinc-900 md:text-6xl mt-1">
+                  {currentWord.text}
+                </h1>
+              </div>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
+                  Pronunciation
+                </span>
+                <div className="text-sm uppercase tracking-wider text-zinc-500 font-medium md:text-base mt-1">
+                  {currentWord.kana}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
+                  Romaji
+                </span>
+                <div className="text-sm text-zinc-600 md:text-base mt-1">
+                  {currentWord.romaji}
+                </div>
+              </div>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
+                  Meaning
+                </span>
+                <p className="text-sm font-medium text-orange-600 md:text-base mt-1">
+                  {currentWord.meaning}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>
