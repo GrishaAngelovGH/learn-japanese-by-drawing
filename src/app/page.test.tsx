@@ -45,7 +45,7 @@ describe("Home Page", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Start Practice" }))
 
-    expect(screen.getByRole("button", { name: "Starting..." })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Start Practice" })).toBeInTheDocument()
     expect(mockPush).not.toHaveBeenCalled()
 
     act(() => {
@@ -53,9 +53,6 @@ describe("Home Page", () => {
     })
 
     expect(mockPush).toHaveBeenCalledWith("/practice?count=1")
-    // button stays "Starting..." through the transition since the page
-    // unmounts on navigation — no need to reset isStarting
-    expect(screen.getByRole("button", { name: "Starting..." })).toBeDisabled()
 
     vi.useRealTimers()
   })

@@ -13,13 +13,23 @@ function getSpeechSynthesis() {
  * Pass kana (e.g. あさごはん) with lang="ja-JP" so it sounds like a
  * native speaker rather than an English reading of romaji.
  * Safe to call from user gesture handlers (click).
+ *
+ * onStart/onEnd are called when playback begins/finishes so the UI can
+ * show a soundwave or other playing indicator.
  */
-export function speakJapanese(text: string, lang = "ja-JP") {
+export function speakJapanese(
+  text: string,
+  lang = "ja-JP",
+  onStart?: () => void,
+  onEnd?: () => void
+) {
   try {
     const synth = getSpeechSynthesis()
-    if (!synth) return
+    if (!synth) {
+      onEnd?.()
+      return
+    }
 
-    // Stop any utterance currently playing
     synth.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
@@ -27,8 +37,18 @@ export function speakJapanese(text: string, lang = "ja-JP") {
     utterance.rate = 0.9 // slightly slower for learners
     utterance.pitch = 1
 
+    utterance.onstart = () => {
+      onStart?.()
+    }
+    utterance.onend = () => {
+      onEnd?.()
+    }
+    utterance.onerror = () => {
+      onEnd?.()
+    }
+
     synth.speak(utterance)
   } catch {
-    // Silently fail if speech synthesis is not available or blocked
+    onEnd?.()
   }
 }

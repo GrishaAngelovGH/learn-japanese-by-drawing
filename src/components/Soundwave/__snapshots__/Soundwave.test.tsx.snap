@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Soundwave > renders 5 animated bars 1`] = `
+<div>
+  <div
+    class="flex items-end gap-1 h-32"
+  >
+    <div
+      class="w-2 bg-orange-500 rounded-full"
+      style="height: 35%; animation: bounce 1s infinite ease-in-out; animation-delay: 0.1s; animation-fill-mode: both;"
+    />
+    <div
+      class="w-2 bg-orange-500 rounded-full"
+      style="height: 45%; animation: bounce 1s infinite ease-in-out; animation-delay: 0.2s; animation-fill-mode: both;"
+    />
+    <div
+      class="w-2 bg-orange-500 rounded-full"
+      style="height: 55%; animation: bounce 1s infinite ease-in-out; animation-delay: 0.30000000000000004s; animation-fill-mode: both;"
+    />
+    <div
+      class="w-2 bg-orange-500 rounded-full"
+      style="height: 65%; animation: bounce 1s infinite ease-in-out; animation-delay: 0.4s; animation-fill-mode: both;"
+    />
+    <div
+      class="w-2 bg-orange-500 rounded-full"
+      style="height: 75%; animation: bounce 1s infinite ease-in-out; animation-delay: 0.5s; animation-fill-mode: both;"
+    />
+    <style>
+      
+        @keyframes bounce {
+          0%,
+          100% {
+            transform: scaleY(0.3);
+          }
+          50% {
+            transform: scaleY(1);
+          }
+        }
+      
+    </style>
+  </div>
+</div>
+`;

@@ -1,11 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
+
+function resetStartState(setIsStarting: (value: boolean) => void) {
+  setIsStarting(false)
+}
 
 export default function Home() {
   const router = useRouter()
@@ -19,11 +23,18 @@ export default function Home() {
     Math.min(minSlider, totalWords)
   )
   const [isStarting, setIsStarting] = useState<boolean>(false)
+  const isInitialMountRef = useRef(true)
 
-  // Reset starting state when navigating back to the home page so the
+  // Reset starting state when arriving back at home so the
   // button shows "Start Practice" again instead of "Starting..."
   useEffect(() => {
-    setIsStarting(false)
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false
+      return
+    }
+    if (pathname === "/") {
+      resetStartState(setIsStarting)
+    }
   }, [pathname])
 
   const handleStart = () => {
@@ -32,14 +43,12 @@ export default function Home() {
     setTimeout(() => playSwoosh(), 700)
     setTimeout(() => {
       router.push(`/practice?count=${selectedCount}`)
-      // keep isStarting true until navigation unmounts this page,
-      // so the button stays "Starting..." through the whole transition
     }, 850)
   }
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col items-center justify-center p-6 antialiased overflow-hidden">
-      <main className={`w-full max-w-lg ${isStarting ? "animate-slide-out-left" : ""}`}>
+      <main className="w-full max-w-lg">
         {/* App Card */}
         <div className="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm space-y-8">
           {/* Header */}
@@ -95,10 +104,9 @@ export default function Home() {
             {/* Start Button */}
             <Button
               onClick={handleStart}
-              disabled={isStarting}
-              className="w-full h-11 text-base font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-sm transition-colors cursor-pointer disabled:opacity-80"
+              className="w-full h-11 text-base font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-sm transition-colors cursor-pointer"
             >
-              {isStarting ? "Starting..." : "Start Practice"}
+              Start Practice
             </Button>
           </div>
         </div>

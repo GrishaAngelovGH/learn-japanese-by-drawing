@@ -52,6 +52,7 @@ describe("Practice Page", () => {
 
     fireEvent.click(speakerButton)
 
-    expect(mockSpeakJapanese).toHaveBeenCalledWith("あさごはん")
+    expect(mockSpeakJapanese).toHaveBeenCalledTimes(1)
+    expect(mockSpeakJapanese.mock.calls[0][0]).toBe("あさごはん")
   })
 })
