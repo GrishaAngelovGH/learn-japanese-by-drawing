@@ -2,10 +2,11 @@
 
 import { Suspense, useState, useEffect } from "react"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
+import { speakJapanese } from "@/lib/speech"
 
 function PracticeContent() {
   const router = useRouter()
@@ -37,7 +38,7 @@ function PracticeContent() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col items-center justify-center p-6 antialiased overflow-hidden">
       <main className={`w-full max-w-2xl ${isGoingBack ? "animate-slide-out-right" : "animate-slide-in-right"}`}>
-        <div className="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm">
+        <div className="relative bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm">
           {/* Practice Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 pb-6 mb-6">
             <Button
@@ -104,6 +105,15 @@ function PracticeContent() {
               </div>
             </div>
           </div>
+
+          {/* Play pronunciation button (bottom-right of card) */}
+          <button
+            onClick={() => speakJapanese(currentWord.kana)}
+            aria-label="Listen to pronunciation"
+            className="absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50 shadow-sm transition-colors"
+          >
+            <Volume2 className="size-5" />
+          </button>
         </div>
       </main>
     </div>

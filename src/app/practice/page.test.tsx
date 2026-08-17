@@ -1,10 +1,18 @@
 import { render, screen, fireEvent, act } from "@testing-library/react"
 import PracticePage from "./page"
 import { mockPush } from "@/test/setup"
+import { speakJapanese } from "@/lib/speech"
+
+vi.mock("@/lib/speech", () => ({
+  speakJapanese: vi.fn()
+}))
+
+const mockSpeakJapanese = vi.mocked(speakJapanese)
 
 describe("Practice Page", () => {
   beforeEach(() => {
     mockPush.mockClear()
+    mockSpeakJapanese.mockClear()
   })
 
   it("should render the component", () => {
@@ -32,5 +40,18 @@ describe("Practice Page", () => {
     expect(screen.getByRole("button", { name: "Back" })).toBeDisabled()
 
     vi.useRealTimers()
+  })
+
+  it("plays pronunciation when speaker button is clicked", () => {
+    render(<PracticePage />)
+
+    const speakerButton = screen.getByRole("button", {
+      name: "Listen to pronunciation"
+    })
+    expect(speakerButton).toBeInTheDocument()
+
+    fireEvent.click(speakerButton)
+
+    expect(mockSpeakJapanese).toHaveBeenCalledWith("あさごはん")
   })
 })
