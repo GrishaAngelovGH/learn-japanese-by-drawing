@@ -13,3 +13,9 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/"
 }))
+
+// Mock document.startViewTransition for testing
+Object.defineProperty(document, "startViewTransition", {
+  value: vi.fn((callback: () => void) => callback()),
+  writable: true
+})

@@ -46,7 +46,7 @@ function Slider({
       <SliderPrimitive.Control className="relative flex w-full touch-none items-center select-none py-2 data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-40 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col">
         <SliderPrimitive.Track
           data-slot="slider-track"
-          className="relative grow overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800 select-none h-1.5 w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
+          className="relative grow overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700 select-none h-1.5 w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
         >
           <SliderPrimitive.Indicator
             data-slot="slider-range"

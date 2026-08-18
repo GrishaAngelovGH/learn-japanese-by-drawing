@@ -1,19 +1,14 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
-
-function resetStartState(setIsStarting: (value: boolean) => void) {
-  setIsStarting(false)
-}
+import { useViewTransition } from "@/hooks/useViewTransition"
 
 export default function Home() {
-  const router = useRouter()
-  const pathname = usePathname()
+  const { push } = useViewTransition()
   const totalWords = words.length
   const minSlider = totalWords >= 10 ? 10 : 1
   const maxSlider = Math.max(minSlider + 1, totalWords)
@@ -22,48 +17,30 @@ export default function Home() {
   const [selectedCount, setSelectedCount] = useState<number>(
     Math.min(minSlider, totalWords)
   )
-  const [isStarting, setIsStarting] = useState<boolean>(false)
-  const isInitialMountRef = useRef(true)
-
-  // Reset starting state when arriving back at home so the
-  // button shows "Start Practice" again instead of "Starting..."
-  useEffect(() => {
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false
-      return
-    }
-    if (pathname === "/") {
-      resetStartState(setIsStarting)
-    }
-  }, [pathname])
 
   const handleStart = () => {
-    if (isStarting) return
-    setIsStarting(true)
-    setTimeout(() => playSwoosh(), 700)
-    setTimeout(() => {
-      router.push(`/practice?count=${selectedCount}`)
-    }, 850)
+    playSwoosh()
+    push(`/practice?count=${selectedCount}`, "forward")
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col items-center justify-center p-6 antialiased overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
       <main className="w-full max-w-lg">
         {/* App Card */}
-        <div className="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm space-y-8">
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm space-y-8">
           {/* Header */}
           <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold tracking-wide">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold tracking-wide">
               <span>こんにちは (konnichiwa)</span>
               <span>•</span>
               <span className="uppercase">Welcome</span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
               Learn Japanese by Drawing
             </h1>
 
-            <p className="text-base text-zinc-600 leading-relaxed max-w-md mx-auto">
+            <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto">
               Master Japanese vocabulary by drawing characters stroke-by-stroke.
               Practice stroke order, kana, and kanji with real-time feedback.
             </p>
@@ -71,12 +48,12 @@ export default function Home() {
 
           <div className="space-y-6 pt-2">
             {/* Slider Section */}
-            <div className="space-y-3 bg-zinc-50 p-4 rounded-xl border border-zinc-200/60">
+            <div className="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-zinc-700">
+                <span className="font-medium text-zinc-700 dark:text-zinc-300">
                   Session Length
                 </span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 text-xs font-semibold">
                   {selectedCount} {selectedCount === 1 ? "word" : "words"}
                 </span>
               </div>
@@ -92,7 +69,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex justify-between text-xs text-zinc-500">
+              <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
                 <span>Min: {minSlider}</span>
                 <span>
                   Available in dictionary: {totalWords}{" "}

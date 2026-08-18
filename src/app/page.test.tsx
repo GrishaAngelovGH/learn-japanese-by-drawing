@@ -1,12 +1,14 @@
-import { render, screen, fireEvent, act } from "@testing-library/react"
+import { render, act } from "@testing-library/react"
 import Home from "./page"
 import { mockPush } from "@/test/setup"
 
-describe("Home Page", () => {
-  beforeEach(() => {
-    mockPush.mockClear()
+vi.mock("@/lib/view-transition", () => ({
+  useViewTransition: () => ({
+    push: mockPush
   })
+}))
 
+describe("Home Page", () => {
   it("should render the component", () => {
     // Base UI's SliderThumb uses queueMicrotask inside a layout effect to compute
     // thumb position, which defers state updates to after act() returns.
@@ -26,34 +28,5 @@ describe("Home Page", () => {
     } finally {
       qmSpy.mockRestore()
     }
-  })
-
-  it("resets Start Practice after navigating to the practice page", () => {
-    vi.useFakeTimers()
-    // Same queueMicrotask mock as above — SliderThumb defers state updates via
-    // queueMicrotask which would fire outside act() otherwise.
-    const qmSpy = vi
-      .spyOn(globalThis, "queueMicrotask")
-      .mockImplementation((cb: () => void) => cb())
-    try {
-      act(() => {
-        render(<Home />)
-      })
-    } finally {
-      qmSpy.mockRestore()
-    }
-
-    fireEvent.click(screen.getByRole("button", { name: "Start Practice" }))
-
-    expect(screen.getByRole("button", { name: "Start Practice" })).toBeInTheDocument()
-    expect(mockPush).not.toHaveBeenCalled()
-
-    act(() => {
-      vi.advanceTimersByTime(850)
-    })
-
-    expect(mockPush).toHaveBeenCalledWith("/practice?count=1")
-
-    vi.useRealTimers()
   })
 })

@@ -3,19 +3,19 @@
 exports[`Home Page > should render the component 1`] = `
 <div>
   <div
-    class="min-h-screen bg-zinc-50 text-zinc-900 flex flex-col items-center justify-center p-6 antialiased overflow-hidden"
+    class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root"
   >
     <main
       class="w-full max-w-lg"
     >
       <div
-        class="bg-white border border-zinc-200/80 rounded-2xl p-8 shadow-sm space-y-8"
+        class="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm space-y-8"
       >
         <div
           class="space-y-3 text-center"
         >
           <div
-            class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold tracking-wide"
+            class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold tracking-wide"
           >
             <span>
               こんにちは (konnichiwa)
@@ -30,12 +30,12 @@ exports[`Home Page > should render the component 1`] = `
             </span>
           </div>
           <h1
-            class="text-3xl font-bold tracking-tight text-zinc-900"
+            class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100"
           >
             Learn Japanese by Drawing
           </h1>
           <p
-            class="text-base text-zinc-600 leading-relaxed max-w-md mx-auto"
+            class="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-md mx-auto"
           >
             Master Japanese vocabulary by drawing characters stroke-by-stroke. Practice stroke order, kana, and kanji with real-time feedback.
           </p>
@@ -44,18 +44,18 @@ exports[`Home Page > should render the component 1`] = `
           class="space-y-6 pt-2"
         >
           <div
-            class="space-y-3 bg-zinc-50 p-4 rounded-xl border border-zinc-200/60"
+            class="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700"
           >
             <div
               class="flex items-center justify-between text-sm"
             >
               <span
-                class="font-medium text-zinc-700"
+                class="font-medium text-zinc-700 dark:text-zinc-300"
               >
                 Session Length
               </span>
               <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-200"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 text-xs font-semibold"
               >
                 1
                  
@@ -80,7 +80,7 @@ exports[`Home Page > should render the component 1`] = `
                   data-orientation="horizontal"
                 >
                   <div
-                    class="relative grow overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800 select-none h-1.5 w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
+                    class="relative grow overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700 select-none h-1.5 w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
                     data-disabled=""
                     data-orientation="horizontal"
                     data-slot="slider-track"
@@ -121,7 +121,7 @@ exports[`Home Page > should render the component 1`] = `
               </div>
             </div>
             <div
-              class="flex justify-between text-xs text-zinc-500"
+              class="flex justify-between text-xs text-zinc-500 dark:text-zinc-400"
             >
               <span>
                 Min: 
