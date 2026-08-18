@@ -57,9 +57,9 @@ exports[`Home Page > should render the component 1`] = `
               <span
                 class="inline-flex items-center px-2.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 text-xs font-semibold"
               >
-                1
+                10
                  
-                word
+                words
               </span>
             </div>
             <div
@@ -67,7 +67,6 @@ exports[`Home Page > should render the component 1`] = `
             >
               <div
                 class="w-full data-[orientation=vertical]:h-full"
-                data-disabled=""
                 data-orientation="horizontal"
                 data-slot="slider"
                 id="base-ui-_r_0_"
@@ -76,12 +75,10 @@ exports[`Home Page > should render the component 1`] = `
                 <div
                   class="relative flex w-full touch-none items-center select-none py-2 data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-40 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col"
                   data-base-ui-slider-control=""
-                  data-disabled=""
                   data-orientation="horizontal"
                 >
                   <div
                     class="relative grow overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700 select-none h-1.5 w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5"
-                    data-disabled=""
                     data-orientation="horizontal"
                     data-slot="slider-track"
                     style="position: relative;"
@@ -89,7 +86,6 @@ exports[`Home Page > should render the component 1`] = `
                     <div
                       class="bg-orange-500 select-none h-full data-[orientation=vertical]:w-full"
                       data-base-ui-slider-indicator=""
-                      data-disabled=""
                       data-orientation="horizontal"
                       data-slot="slider-range"
                       style="visibility: hidden; position: relative; height: inherit; --start-position: 0%; inset-inline-start: 0px; width: var(--start-position);"
@@ -97,7 +93,6 @@ exports[`Home Page > should render the component 1`] = `
                   </div>
                   <div
                     class="relative block size-4 shrink-0 rounded-full border-2 border-orange-500 bg-white shadow-sm ring-orange-200 transition-shadow select-none after:absolute after:-inset-2 hover:ring-4 focus-visible:ring-4 focus-visible:outline-none active:ring-4 disabled:pointer-events-none disabled:opacity-50"
-                    data-disabled=""
                     data-index="0"
                     data-orientation="horizontal"
                     data-slot="slider-thumb"
@@ -106,15 +101,14 @@ exports[`Home Page > should render the component 1`] = `
                   >
                     <input
                       aria-orientation="horizontal"
-                      aria-valuenow="1"
-                      disabled=""
+                      aria-valuenow="10"
                       id="base-ui-_r_3_"
-                      max="2"
-                      min="1"
+                      max="11"
+                      min="10"
                       step="1"
                       style="clip-path: inset(50%); overflow: hidden; white-space: nowrap; border: 0px; padding: 0px; width: 100%; height: 100%; margin: 0px; position: fixed; top: 0px; left: 0px;"
                       type="range"
-                      value="1"
+                      value="10"
                     />
                   </div>
                 </div>
@@ -125,13 +119,13 @@ exports[`Home Page > should render the component 1`] = `
             >
               <span>
                 Min: 
-                1
+                10
               </span>
               <span>
                 Available in dictionary: 
-                1
+                11
                  
-                word
+                words
               </span>
             </div>
           </div>
