@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation"
 
-export function useViewTransition() {
+const useViewTransition = () => {
   const router = useRouter()
 
   const push = (href: string, direction: "forward" | "back" = "forward") => {
@@ -22,3 +22,5 @@ export function useViewTransition() {
 
   return { push }
 }
+
+export default useViewTransition

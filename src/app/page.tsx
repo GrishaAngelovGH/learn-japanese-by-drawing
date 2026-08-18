@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
-import { useViewTransition } from "@/hooks/useViewTransition"
+import useViewTransition from "@/hooks/useViewTransition"
 
 export default function Home() {
   const { push } = useViewTransition()

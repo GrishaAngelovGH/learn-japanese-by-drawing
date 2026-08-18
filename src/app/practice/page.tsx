@@ -2,14 +2,13 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, Volume2, Settings } from "lucide-react"
+import { ArrowLeft, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Soundwave from "@/components/Soundwave"
-import { SettingsModal } from "@/components/settings"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
-import { useViewTransition } from "@/hooks/useViewTransition"
+import useViewTransition from "@/hooks/useViewTransition"
 
 function PracticeContent() {
   const { push } = useViewTransition()
@@ -19,7 +18,6 @@ function PracticeContent() {
   const currentWord = words[0]
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
 
   const handleBack = () => {
     playSwoosh()
@@ -55,13 +53,6 @@ function PracticeContent() {
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold">
               <span>Word 1 of {sessionCount}</span>
             </div>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              aria-label="Settings"
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            >
-              <Settings className="size-4" />
-            </button>
           </div>
 
           {/* Two-column layout: canvas left, word info right */}
@@ -137,12 +128,6 @@ function PracticeContent() {
           </button>
         </div>
       </main>
-
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-      />
     </div>
   )
 }
