@@ -31,7 +31,7 @@ const words: Word[] = [
     kana: "ちゃ",
     romaji: "cha",
     meaning: "Tea",
-    characters: ["ちゃ"]
+    characters: ["ち", "ゃ"]
   },
   {
     id: "coffee",
@@ -39,7 +39,7 @@ const words: Word[] = [
     kana: "こーひー",
     romaji: "koohii",
     meaning: "Coffee",
-    characters: ["こ", "ー", "ひ", "ー"]
+    characters: ["コ", "ー", "ヒ", "ー"]
   },
   {
     id: "bread",
@@ -63,7 +63,7 @@ const words: Word[] = [
     kana: "ぎゅうにゅう",
     romaji: "gyuunyuu",
     meaning: "Milk",
-    characters: ["ぎゅう", "にゅう"]
+    characters: ["ぎ", "ゅ", "う", "に", "ゅ", "う"]
   },
   {
     id: "apple",
@@ -71,7 +71,7 @@ const words: Word[] = [
     kana: "りんご",
     romaji: "ringo",
     meaning: "Apple",
-    characters: ["りん", "ご"]
+    characters: ["り", "ん", "ご"]
   },
   {
     id: "banana",
