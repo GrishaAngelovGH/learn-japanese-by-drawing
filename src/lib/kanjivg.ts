@@ -31,11 +31,6 @@ function loadIndex(): Promise<Record<string, string[]>> {
   return indexPromise
 }
 
-/** Convert a single character to its lower-cased hex codepoint, e.g. 朝 -> 0671d */
-function codepoint(char: string): string {
-  return char.codePointAt(0)?.toString(16) ?? ""
-}
-
 /** Pick the canonical SVG filename for a character from the index entry. */
 function pickFile(entry: string[]): string | null {
   if (entry.length === 0) return null

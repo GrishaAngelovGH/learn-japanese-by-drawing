@@ -4,6 +4,7 @@ import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { ArrowLeft, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { StrokePreview } from "@/components/StrokePreview"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
 import { playSwoosh } from "@/lib/audio"
@@ -18,6 +19,7 @@ function PracticeContent() {
   const currentWord = words[0]
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
+  const [showPreview, setShowPreview] = useState<boolean>(false)
 
   const handleBack = () => {
     playSwoosh()
@@ -57,9 +59,11 @@ function PracticeContent() {
 
           {/* Two-column layout: canvas left, word info right */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            {/* Left Column: Drawing Canvas / Soundwave */}
+            {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-96 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
-              {isSpeaking ? (
+              {showPreview ? (
+                <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
+              ) : isSpeaking ? (
                 <>
                   <Soundwave />
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -113,6 +117,18 @@ function PracticeContent() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Preview stroke order button (below the canvas) */}
+          <div className="mt-6 flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview((prev) => !prev)}
+              className="gap-1.5 cursor-pointer"
+            >
+              {showPreview ? "Hide stroke order" : "Preview stroke order"}
+            </Button>
           </div>
 
           {/* Play pronunciation button (bottom-right of card) */}
