@@ -31,4 +31,20 @@ describe("Practice Page", () => {
     expect(mockSpeakJapanese).toHaveBeenCalledTimes(1)
     expect(mockSpeakJapanese.mock.calls[0][0]).toBe("あさごはん")
   })
+
+  it("goes to next word when Next is clicked", () => {
+    render(<PracticePage />)
+    const nextButton = screen.getByRole("button", { name: "Next" })
+    fireEvent.click(nextButton)
+    expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+  })
+
+  it("goes to previous word when Prev is clicked", () => {
+    render(<PracticePage />)
+    const nextButton = screen.getByRole("button", { name: "Next" })
+    fireEvent.click(nextButton)
+    const prevButton = screen.getByRole("button", { name: "Prev" })
+    fireEvent.click(prevButton)
+    expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+  })
 })

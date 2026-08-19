@@ -63,3 +63,39 @@ export function playSwoosh() {
     // Silently fail if audio is not available or blocked by browser
   }
 }
+
+export function playNext() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(660, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(990, ctx.currentTime + 0.12)
+    gain.gain.setValueAtTime(0.001, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18)
+    osc.connect(gain).connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.18)
+  } catch {}
+}
+
+export function playPrev() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(990, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12)
+    gain.gain.setValueAtTime(0.001, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18)
+    osc.connect(gain).connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.18)
+  } catch {}
+}

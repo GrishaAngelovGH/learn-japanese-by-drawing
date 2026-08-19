@@ -2,12 +2,12 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, Volume2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
-import { playSwoosh } from "@/lib/audio"
+import { playNext, playPrev } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
 import useViewTransition from "@/hooks/useViewTransition"
 
@@ -16,13 +16,25 @@ function PracticeContent() {
   const searchParams = useSearchParams()
   const countParam = searchParams.get("count")
   const sessionCount = countParam ? parseInt(countParam, 10) : 1
-  const currentWord = words[0]
-
+  const [currentIndex, setCurrentIndex] = useState<number>(0)
+  const currentWord = words[currentIndex]
+  
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [showPreview, setShowPreview] = useState<boolean>(false)
 
+  const handleNext = () => {
+    playNext()
+    setCurrentIndex((prev) => Math.min(prev + 1, words.length - 1))
+    setShowPreview(false)
+  }
+
+  const handlePrev = () => {
+    playPrev()
+    setCurrentIndex((prev) => Math.max(prev - 1, 0))
+    setShowPreview(false)
+  }
+
   const handleBack = () => {
-    playSwoosh()
     push("/", "back")
   }
 
@@ -53,7 +65,7 @@ function PracticeContent() {
             </Button>
 
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold">
-              <span>Word 1 of {sessionCount}</span>
+              <span>Word {currentIndex + 1} of {sessionCount}</span>
             </div>
           </div>
 
@@ -120,7 +132,7 @@ function PracticeContent() {
           </div>
 
           {/* Preview stroke order button (below the canvas) */}
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -128,6 +140,26 @@ function PracticeContent() {
               className="gap-1.5 cursor-pointer"
             >
               {showPreview ? "Hide stroke order" : "Preview stroke order"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrev}
+              disabled={currentIndex <= 0}
+              className="gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="size-4" />
+              Prev
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleNext}
+              disabled={currentIndex >= words.length - 1}
+              className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Next
+              <ArrowRight className="size-4" />
             </Button>
           </div>
 
