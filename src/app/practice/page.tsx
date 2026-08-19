@@ -15,7 +15,7 @@ function PracticeContent() {
   const { push } = useViewTransition()
   const searchParams = useSearchParams()
   const countParam = searchParams.get("count")
-  const sessionCount = countParam ? parseInt(countParam, 10) : 1
+  const sessionCount = Math.min(countParam ? parseInt(countParam, 10) : words.length, words.length)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const currentWord = words[currentIndex]
   
@@ -24,7 +24,7 @@ function PracticeContent() {
 
   const handleNext = () => {
     playNext()
-    setCurrentIndex((prev) => Math.min(prev + 1, words.length - 1))
+    setCurrentIndex((prev) => Math.min(prev + 1, sessionCount - 1))
     setShowPreview(false)
   }
 
@@ -155,7 +155,7 @@ function PracticeContent() {
               variant="default"
               size="sm"
               onClick={handleNext}
-              disabled={currentIndex >= words.length - 1}
+              disabled={currentIndex >= sessionCount - 1}
               className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white"
             >
               Next
