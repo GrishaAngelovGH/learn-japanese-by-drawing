@@ -64,6 +64,16 @@ describe("StrokePreview", () => {
     expect(container.querySelectorAll('svg path[stroke="#f97316"]')).toHaveLength(2)
   })
 
+  it("tells the learner that fonts can differ from handwriting", async () => {
+    mockGetStrokePaths.mockResolvedValue({ ok: true, strokes: [stroke("M1,1")] })
+    const { findByText } = render(
+      <StrokePreview characters={["き"]} strokeDelayMs={400} />
+    )
+    expect(
+      await findByText(/Printed fonts can look a little different/)
+    ).toBeInTheDocument()
+  })
+
   it("navigates between characters with Prev/Next", async () => {
     mockGetStrokePaths.mockImplementation((char) =>
       Promise.resolve({

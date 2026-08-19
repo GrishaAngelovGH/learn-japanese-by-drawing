@@ -196,6 +196,10 @@ export function StrokePreview({
           {activeChar ?? ""}
         </div>
       )}
+
+      <p className="max-w-xs text-center text-xs text-zinc-500 dark:text-zinc-400">
+        Printed fonts can look a little different from handwriting. That&apos;s normal.
+      </p>
     </div>
   )
 }
