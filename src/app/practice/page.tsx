@@ -2,12 +2,12 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, ArrowRight, Volume2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
-import { playNext, playPrev } from "@/lib/audio"
+import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
 import useViewTransition from "@/hooks/useViewTransition"
 
@@ -28,6 +28,12 @@ function PracticeContent() {
     setShowPreview(false)
   }
 
+  const handleRestart = () => {
+    playRestart()
+    setCurrentIndex(0)
+    setShowPreview(false)
+  }
+
   const handlePrev = () => {
     playPrev()
     setCurrentIndex((prev) => Math.max(prev - 1, 0))
@@ -35,6 +41,7 @@ function PracticeContent() {
   }
 
   const handleBack = () => {
+    playSwoosh()
     push("/", "back")
   }
 
@@ -102,8 +109,8 @@ function PracticeContent() {
                 </span>
                 <h1
                   className={`font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1 whitespace-nowrap ${currentWord.text.length > 5
-                      ? "text-4xl md:text-5xl"
-                      : "text-5xl md:text-6xl"
+                    ? "text-4xl md:text-5xl"
+                    : "text-5xl md:text-6xl"
                     }`}
                 >
                   {currentWord.text}
@@ -151,7 +158,7 @@ function PracticeContent() {
               size="sm"
               onClick={handlePrev}
               disabled={currentIndex <= 0}
-              className="gap-1.5 cursor-pointer"
+              className="gap-1.5 cursor-pointer min-w-22 justify-center"
             >
               <ArrowLeft className="size-4" />
               Prev
@@ -159,12 +166,20 @@ function PracticeContent() {
             <Button
               variant="default"
               size="sm"
-              onClick={handleNext}
-              disabled={currentIndex >= sessionCount - 1}
-              className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={currentIndex >= sessionCount - 1 ? handleRestart : handleNext}
+              className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
             >
-              Next
-              <ArrowRight className="size-4" />
+              {currentIndex >= sessionCount - 1 ? (
+                <>
+                  Restart
+                  <RotateCcw className="size-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="size-4" />
+                </>
+              )}
             </Button>
           </div>
 

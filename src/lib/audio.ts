@@ -64,6 +64,32 @@ export function playSwoosh() {
   }
 }
 
+export function playRestart() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+
+    // A short rising arpeggio to signal restart — distinct from next/prev beeps
+    const notes = [523.25, 659.25, 783.99] // C5, E5, G5
+    const noteDuration = 0.06
+    let startTime = ctx.currentTime
+
+    notes.forEach((freq) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0, startTime)
+      gain.gain.linearRampToValueAtTime(0.25, startTime + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + noteDuration)
+      osc.connect(gain).connect(ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + noteDuration)
+      startTime += noteDuration
+    })
+  } catch {}
+}
+
 export function playNext() {
   try {
     const ctx = getAudioContext()
