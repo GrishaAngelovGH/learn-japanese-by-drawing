@@ -4,7 +4,7 @@ import { X } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useEffect } from "react"
 
-interface SettingsModalProps {
+type SettingsModalProps = {
   isOpen: boolean
   onClose: () => void
 }
