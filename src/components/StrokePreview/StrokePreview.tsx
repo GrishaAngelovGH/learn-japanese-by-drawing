@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { getStrokePaths, type Stroke } from "@/lib/kanjivg"
+import { useEffect, useState } from "react"
+import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
+import { type Stroke } from "@/lib/kanjivg"
 import { KanjiVGAttribution } from "./KanjiVGAttribution"
 
 type Props = {
@@ -112,35 +113,10 @@ export function StrokePreview({
   strokeDelayMs = 700
 }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [loaded, setLoaded] = useState<Record<string, Stroke[]>>({})
-  // Tracks which characters have already been requested, so the load
-  // effect's deps stay clean (no object identity in the dependency array).
-  const loadedRef = useRef(new Set<string>())
+  const { strokesByChar } = useKanjiStrokes(characters)
 
   const safeIndex = Math.min(activeIndex, Math.max(0, characters.length - 1))
   const activeChar = characters[safeIndex]
-
-  // Load stroke data for each character (lazy, cached).
-  // NOTE: no "cancelled" flag here. React Strict Mode (dev) runs effects twice:
-  // run #1 starts the fetch, cleanup cancels it, run #2 skips it because the
-  // char is already in loadedRef -> the result was dropped and the plain-text
-  // fallback showed forever. Writing into state after unmount is harmless.
-  useEffect(() => {
-    characters.forEach((char) => {
-      if (loadedRef.current.has(char)) return
-      loadedRef.current.add(char)
-      getStrokePaths(char).then((r) => {
-        if (r.ok) {
-          setLoaded((prev) => ({ ...prev, [char]: r.strokes }))
-        } else if (r.reason === "error") {
-          // Real failure (network/HTTP): say so, and allow a retry on the
-          // next render. A merely "missing" character is expected and silent.
-          console.warn(`StrokePreview: failed to load strokes for "${char}"`, r)
-          loadedRef.current.delete(char)
-        }
-      })
-    })
-  }, [characters])
 
   // Go back to the first character when the word changes. Done during render
   // (React's "adjust state when a prop changes" pattern) rather than in an
@@ -153,7 +129,7 @@ export function StrokePreview({
     setActiveIndex(0)
   }
 
-  const strokes = activeChar ? loaded[activeChar] ?? null : null
+  const strokes = activeChar ? strokesByChar[activeChar] ?? null : null
 
   return (
     <div className="flex flex-col items-center gap-4">
