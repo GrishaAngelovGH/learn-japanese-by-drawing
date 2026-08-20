@@ -18,7 +18,7 @@ function PracticeContent() {
   const sessionCount = Math.min(countParam ? parseInt(countParam, 10) : words.length, words.length)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const currentWord = words[currentIndex]
-  
+
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [showPreview, setShowPreview] = useState<boolean>(false)
 
@@ -100,7 +100,12 @@ function PracticeContent() {
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
                   Japanese Character
                 </span>
-                <h1 className="text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 md:text-6xl mt-1">
+                <h1
+                  className={`font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1 whitespace-nowrap ${currentWord.text.length > 5
+                      ? "text-4xl md:text-5xl"
+                      : "text-5xl md:text-6xl"
+                    }`}
+                >
                   {currentWord.text}
                 </h1>
               </div>
