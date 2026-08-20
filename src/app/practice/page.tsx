@@ -20,24 +20,24 @@ function PracticeContent() {
   const currentWord = words[currentIndex]
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
-  const [showPreview, setShowPreview] = useState<boolean>(false)
+  const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
 
   const handleNext = () => {
     playNext()
     setCurrentIndex((prev) => Math.min(prev + 1, sessionCount - 1))
-    setShowPreview(false)
+    setMode("idle")
   }
 
   const handleRestart = () => {
     playRestart()
     setCurrentIndex(0)
-    setShowPreview(false)
+    setMode("idle")
   }
 
   const handlePrev = () => {
     playPrev()
     setCurrentIndex((prev) => Math.max(prev - 1, 0))
-    setShowPreview(false)
+    setMode("idle")
   }
 
   const handleBack = () => {
@@ -80,9 +80,9 @@ function PracticeContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-96 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
-              {showPreview ? (
+              {mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
-              ) : isSpeaking ? (
+              ) : mode === "idle" && isSpeaking ? (
                 <>
                   <Soundwave />
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -148,10 +148,10 @@ function PracticeContent() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowPreview((prev) => !prev)}
+              onClick={() => setMode((prev) => (prev === "preview" ? "idle" : "preview"))}
               className="gap-1.5 cursor-pointer"
             >
-              {showPreview ? "Hide stroke order" : "Preview stroke order"}
+              {mode === "preview" ? "Hide stroke order" : "Preview stroke order"}
             </Button>
             <Button
               variant="outline"
