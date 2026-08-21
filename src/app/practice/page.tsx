@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
+import { StrokeDrawing } from "@/components/StrokeDrawing"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
 import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
@@ -80,7 +81,9 @@ function PracticeContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-96 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
-              {mode === "preview" ? (
+              {mode === "draw" ? (
+                <StrokeDrawing characters={currentWord.characters} />
+              ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
               ) : mode === "idle" && isSpeaking ? (
                 <>
@@ -144,7 +147,7 @@ function PracticeContent() {
           </div>
 
           {/* Preview stroke order button (below the canvas) */}
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -152,6 +155,14 @@ function PracticeContent() {
               className="gap-1.5 cursor-pointer"
             >
               {mode === "preview" ? "Hide stroke order" : "Preview stroke order"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMode((prev) => (prev === "draw" ? "idle" : "draw"))}
+              className="gap-1.5 cursor-pointer"
+            >
+              {mode === "draw" ? "Stop drawing" : "Learn to draw"}
             </Button>
             <Button
               variant="outline"

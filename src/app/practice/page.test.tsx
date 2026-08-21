@@ -100,4 +100,39 @@ describe("Practice Page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Restart" }))
     expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
   })
+
+  it("toggles the draw canvas with the Learn to draw button", () => {
+    render(<PracticePage />)
+
+    expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
+    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop drawing" }))
+    expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+  })
+
+  it("switches between preview and draw mode", () => {
+    render(<PracticePage />)
+
+    fireEvent.click(screen.getByRole("button", { name: "Preview stroke order" }))
+    expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
+    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Stop drawing" }))
+    expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+  })
+
+  it("resets to idle when moving to the next word", () => {
+    render(<PracticePage />)
+
+    fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
+    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }))
+    expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+  })
 })
