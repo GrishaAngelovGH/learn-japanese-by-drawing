@@ -137,8 +137,50 @@ describe("StrokeDrawing", () => {
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
     expect(canvas.querySelector('path[stroke="#2563eb"]')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear" }))
+    fireEvent.click(screen.getByRole("button", { name: "Clear all" }))
     expect(canvas.querySelector('path[stroke="#2563eb"]')).not.toBeInTheDocument()
+  })
+
+  it("undoes the last point on Undo button click", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    // Draw three points: (10,10) -> (20,20) -> (30,30)
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 30, clientY: 30, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 30, clientY: 30, pointerId: 1 })
+
+    let tracePath = canvas.querySelector('path[stroke="#2563eb"]')
+    expect(tracePath).toHaveAttribute("d", "M10.9,10.9 L21.8,21.8 L32.7,32.7")
+
+    // Undo last point -> remove (30,30) -> (32.7,32.7)
+    fireEvent.click(screen.getByRole("button", { name: "Undo last point" }))
+
+    tracePath = canvas.querySelector('path[stroke="#2563eb"]')
+    expect(tracePath).toHaveAttribute("d", "M10.9,10.9 L21.8,21.8")
+  })
+
+  it("disables Undo and Clear when trace is empty", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    await screen.findByTestId("draw-canvas")
+    const undo = screen.getByRole("button", { name: "Undo last point" })
+    const clear = screen.getByRole("button", { name: "Clear all" })
+    expect(undo).toBeDisabled()
+    expect(clear).toBeDisabled()
   })
 
   it("clears previous trace on a new pointerdown", async () => {

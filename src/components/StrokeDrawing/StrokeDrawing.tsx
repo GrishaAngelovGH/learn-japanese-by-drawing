@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { Undo2, Trash2 } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { KanjiVGAttribution } from "@/components/StrokePreview/KanjiVGAttribution"
@@ -81,6 +82,10 @@ export function StrokeDrawing({ characters }: Props) {
   const handleClear = () => {
     setIsDrawing(false)
     setTrace([])
+  }
+
+  const handleUndo = () => {
+    setTrace((prev) => prev.slice(0, -1))
   }
 
   const traceD =
@@ -190,24 +195,34 @@ export function StrokeDrawing({ characters }: Props) {
                 d={traceD}
                 fill="none"
                 stroke="#2563eb"
-                className="dark:[stroke:#60a5fa]"
+                className="dark:stroke-[#60a5fa]"
                 strokeWidth={3}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             )}
           </svg>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
               Stroke {strokeIndex + 1} / {total}
             </span>
             <button
               type="button"
+              onClick={handleUndo}
+              disabled={trace.length === 0}
+              aria-label="Undo last point"
+              className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Undo2 className="size-4" />
+            </button>
+            <button
+              type="button"
               onClick={handleClear}
               disabled={trace.length === 0}
-              className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:underline disabled:opacity-40"
+              aria-label="Clear all"
+              className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Clear
+              <Trash2 className="size-4" />
             </button>
           </div>
         </>
