@@ -16,7 +16,7 @@ describe("StrokeDrawing", () => {
     mockGetStrokePaths.mockReset()
   })
 
-  it("renders ghost guide strokes for the current character", async () => {
+  it("renders exactly one orange-outlined current stroke", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
       strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
@@ -25,49 +25,72 @@ describe("StrokeDrawing", () => {
     render(<StrokeDrawing characters={["一"]} />)
 
     const canvas = await screen.findByTestId("draw-canvas")
-    expect(canvas).toHaveAttribute("viewBox", "0 0 109 109")
-    const ghostPaths = canvas.querySelectorAll('path[stroke="#e5e7eb"]')
-    expect(ghostPaths).toHaveLength(2)
+    const orange = canvas.querySelectorAll('path[stroke="#f97316"]')
+    expect(orange).toHaveLength(1)
   })
 
-  it("has an accessible label", async () => {
+  it("renders ghost paths for not-yet-reached strokes", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
-      strokes: [stroke("M1,1")]
+      strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
     })
 
     render(<StrokeDrawing characters={["一"]} />)
 
-    await screen.findByLabelText(/draw the current stroke here/i)
+    const canvas = await screen.findByTestId("draw-canvas")
+    const ghost = canvas.querySelectorAll('path[stroke="#e5e7eb"][stroke-width="2"]')
+    expect(ghost).toHaveLength(1)
+    expect(ghost[0]).not.toHaveAttribute("stroke-dasharray")
   })
 
-  it("shows Loading… while stroke data is being fetched", async () => {
-    mockGetStrokePaths.mockImplementation(
-      () =>
-        new Promise(() => {
-          // never resolves -> stays in loading state
-        })
-    )
+  it("renders a dashed orange outline for the current stroke", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
+    })
 
-    const { findByText } = render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} />)
 
-    await findByText("Loading…")
+    const canvas = await screen.findByTestId("draw-canvas")
+    const orange = canvas.querySelectorAll('path[stroke="#f97316"]')
+    expect(orange).toHaveLength(1)
+    expect(orange[0]).toHaveAttribute("stroke-dasharray", "6 4")
   })
 
-  it("shows the plain character and a note when stroke data is missing", async () => {
-    mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
+  it("renders a start arrow for the current stroke", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
 
-    const { findByText } = render(<StrokeDrawing characters={["あ"]} />)
+    render(<StrokeDrawing characters={["一"]} />)
 
-    await findByText("あ")
-    expect(await findByText(/No stroke data for this character/)).toBeInTheDocument()
+    const canvas = await screen.findByTestId("draw-canvas")
+    const arrow = canvas.querySelector('path[d="M-4,0 L4,-4 L4,4 Z"]')
+    expect(arrow).toBeInTheDocument()
   })
 
-  it("shows an error message when stroke loading fails", async () => {
-    mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "error" })
+  it("shows Stroke counter", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M1,1"), stroke("M2,2")]
+    })
 
-    const { findByText } = render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} />)
 
-    expect(await findByText(/Failed to load stroke data/)).toBeInTheDocument()
+    expect(await screen.findByText("Stroke 1 / 2")).toBeInTheDocument()
+  })
+
+  it("rotates the start arrow along the stroke tangent", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    const arrow = canvas.querySelector('path[d="M-4,0 L4,-4 L4,4 Z"]')
+    expect(arrow).toHaveAttribute("transform", expect.stringMatching(/rotate\(45/))
   })
 })
