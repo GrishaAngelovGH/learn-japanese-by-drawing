@@ -3,17 +3,26 @@ import { vi } from "vitest"
 import { useSearchParams, ReadonlyURLSearchParams } from "next/navigation"
 import PracticePage from "./page"
 import { speakJapanese } from "@/lib/speech"
+import { getStrokePaths } from "@/lib/kanjivg"
 
 vi.mock("@/lib/speech", () => ({
   speakJapanese: vi.fn()
 }))
+vi.mock("@/lib/kanjivg", () => ({
+  getStrokePaths: vi.fn()
+}))
 
 const mockSpeakJapanese = vi.mocked(speakJapanese)
+const mockGetStrokePaths = vi.mocked(getStrokePaths)
 const mockUseSearchParams = vi.mocked(useSearchParams)
 
 describe("Practice Page", () => {
   beforeEach(() => {
     mockSpeakJapanese.mockClear()
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [{ strokeNumber: 1, d: "M1,1", type: "㇐" }]
+    })
     // Small session count so no test iterates the full production dictionary
     mockUseSearchParams.mockReturnValue(new URLSearchParams("?count=3") as ReadonlyURLSearchParams)
   })
@@ -101,36 +110,36 @@ describe("Practice Page", () => {
     expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
   })
 
-  it("toggles the draw canvas with the Learn to draw button", () => {
+  it("toggles the draw canvas with the Learn to draw button", async () => {
     render(<PracticePage />)
 
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
-    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+    expect(await screen.findByTestId("draw-canvas")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Stop drawing" }))
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
   })
 
-  it("switches between preview and draw mode", () => {
+  it("switches between preview and draw mode", async () => {
     render(<PracticePage />)
 
     fireEvent.click(screen.getByRole("button", { name: "Preview stroke order" }))
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
-    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+    expect(await screen.findByTestId("draw-canvas")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Stop drawing" }))
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
   })
 
-  it("resets to idle when moving to the next word", () => {
+  it("resets to idle when moving to the next word", async () => {
     render(<PracticePage />)
 
     fireEvent.click(screen.getByRole("button", { name: "Learn to draw" }))
-    expect(screen.getByTestId("draw-canvas")).toBeInTheDocument()
+    expect(await screen.findByTestId("draw-canvas")).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }))
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
