@@ -71,3 +71,24 @@ export function densify(points: Point[], maxGap: number): Point[] {
   }
   return result
 }
+
+/**
+ * Minimal pointer-event shape needed for viewBox conversion. Accepts both
+ * the global `PointerEvent` and React's `PointerEvent<T>`.
+ */
+type PointerLike = { clientX: number; clientY: number }
+
+/**
+ * Convert a pointer event to a point in the 109 × 109 viewBox space
+ * (D4). Returns null when the SVG element isn't available.
+ */
+export function toViewBoxPoint(
+  event: PointerLike,
+  svgElement: SVGSVGElement | null
+): Point | null {
+  if (!svgElement) return null
+  const rect = svgElement.getBoundingClientRect()
+  const x = Math.round(((event.clientX - rect.left) / rect.width) * 109 * 100) / 100
+  const y = Math.round(((event.clientY - rect.top) / rect.height) * 109 * 100) / 100
+  return { x, y }
+}

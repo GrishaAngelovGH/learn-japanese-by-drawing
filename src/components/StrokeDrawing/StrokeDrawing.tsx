@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
-import { startDirection } from "@/lib/draw/geometry"
+import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { KanjiVGAttribution } from "@/components/StrokePreview/KanjiVGAttribution"
 
 type Props = {
@@ -15,6 +15,9 @@ export function StrokeDrawing({ characters }: Props) {
   const { strokesByChar, statusByChar } = useKanjiStrokes(characters)
   const [characterIndex, setCharacterIndex] = useState(0)
   const [strokeIndex, setStrokeIndex] = useState(0)
+  const [trace, setTrace] = useState<Point[]>([])
+  const [isDrawing, setIsDrawing] = useState(false)
+  const svgRef = useRef<SVGSVGElement>(null)
 
   const safeCharIndex = Math.min(
     characterIndex,
@@ -29,6 +32,7 @@ export function StrokeDrawing({ characters }: Props) {
     setPrevCharsKey(charsKey)
     setCharacterIndex(0)
     setStrokeIndex(0)
+    setTrace([])
   }
 
   const status = activeChar ? statusByChar[activeChar] : undefined
@@ -48,6 +52,41 @@ export function StrokeDrawing({ characters }: Props) {
       angle: angleDeg,
     }
   }
+
+  const handlePointerDown = (event: React.PointerEvent<SVGSVGElement>) => {
+    const point = toViewBoxPoint(event, svgRef.current)
+    if (!point) return
+    svgRef.current?.setPointerCapture?.(event.pointerId)
+    setIsDrawing(true)
+    setTrace([point])
+  }
+
+  const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
+    if (!isDrawing) return
+    const point = toViewBoxPoint(event, svgRef.current)
+    if (!point) return
+    setTrace((prev) => [...prev, point])
+  }
+
+  const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
+    setIsDrawing(false)
+    svgRef.current?.releasePointerCapture?.(event.pointerId)
+  }
+
+  const handlePointerCancel = (event: React.PointerEvent<SVGSVGElement>) => {
+    setIsDrawing(false)
+    svgRef.current?.releasePointerCapture?.(event.pointerId)
+  }
+
+  const handleClear = () => {
+    setIsDrawing(false)
+    setTrace([])
+  }
+
+  const traceD =
+    trace.length > 0
+      ? trace.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(" ")
+      : ""
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -71,11 +110,16 @@ export function StrokeDrawing({ characters }: Props) {
       ) : (
         <>
           <svg
+            ref={svgRef}
             viewBox="0 0 109 109"
-            className="w-44 h-44 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100"
+            className="w-44 h-44 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 touch-none"
             data-testid="draw-canvas"
             aria-label="Draw the current stroke here"
             xmlns="http://www.w3.org/2000/svg"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
           >
             {/* Accepted strokes (before current): dark ink. */}
             {strokeList.map((s, i) =>
@@ -139,11 +183,32 @@ export function StrokeDrawing({ characters }: Props) {
                 fill="#f97316"
               />
             )}
+            {/* User's live trace. */}
+            {trace.length > 0 && (
+              <path
+                key="trace"
+                d={traceD}
+                fill="none"
+                stroke="#2563eb"
+                className="dark:[stroke:#60a5fa]"
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           </svg>
           <div className="flex items-center gap-3">
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
               Stroke {strokeIndex + 1} / {total}
             </span>
+            <button
+              type="button"
+              onClick={handleClear}
+              disabled={trace.length === 0}
+              className="text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:underline disabled:opacity-40"
+            >
+              Clear
+            </button>
           </div>
         </>
       )}

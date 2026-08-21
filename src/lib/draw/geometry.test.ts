@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest"
-import { sampleStroke, startDirection, distance, pathLength, densify } from "./geometry"
+import {
+  sampleStroke,
+  startDirection,
+  distance,
+  pathLength,
+  densify,
+  toViewBoxPoint,
+} from "./geometry"
 
 describe("sampleStroke", () => {
   it("returns both endpoints for a straight line", () => {
@@ -100,5 +107,37 @@ describe("densify", () => {
   it("returns a copy for empty / single input", () => {
     expect(densify([], 1)).toEqual([])
     expect(densify([{ x: 1, y: 2 }], 1)).toEqual([{ x: 1, y: 2 }])
+  })
+})
+
+describe("toViewBoxPoint", () => {
+  it("converts a pointer event to a viewBox point", () => {
+    const svgElement = {
+      getBoundingClientRect: () => ({
+        left: 100,
+        top: 50,
+        width: 200,
+        height: 200,
+      }),
+    } as unknown as SVGSVGElement
+
+    const event = {
+      clientX: 150,
+      clientY: 150,
+      pointerId: 1,
+    } as unknown as PointerEvent
+
+    const point = toViewBoxPoint(event, svgElement)
+    expect(point).toEqual({ x: 27.25, y: 54.5 })
+  })
+
+  it("returns null when no svg element is provided", () => {
+    const event = {
+      clientX: 150,
+      clientY: 150,
+      pointerId: 1,
+    } as unknown as PointerEvent
+
+    expect(toViewBoxPoint(event, null)).toBeNull()
   })
 })
