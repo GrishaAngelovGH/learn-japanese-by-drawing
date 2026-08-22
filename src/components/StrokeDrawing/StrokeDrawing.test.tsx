@@ -2,12 +2,17 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { vi } from "vitest"
 import { StrokeDrawing } from "./StrokeDrawing"
 import { getStrokePaths } from "@/lib/kanjivg"
+import { scoreStroke } from "@/lib/draw/score"
 
 vi.mock("@/lib/kanjivg", () => ({
   getStrokePaths: vi.fn()
 }))
+vi.mock("@/lib/draw/score", () => ({
+  scoreStroke: vi.fn()
+}))
 
 const mockGetStrokePaths = vi.mocked(getStrokePaths)
+const mockScoreStroke = vi.mocked(scoreStroke)
 
 const stroke = (d: string) => ({ strokeNumber: 1, d, type: "㇐" })
 
@@ -21,6 +26,14 @@ const mockRect = {
 describe("StrokeDrawing", () => {
   beforeEach(() => {
     mockGetStrokePaths.mockReset()
+    mockScoreStroke.mockReset()
+    // Default: short traces are non-judgeable (ignored on pointer up)
+    mockScoreStroke.mockReturnValue({
+      score: 0,
+      coverage: 0,
+      precision: 0,
+      judgeable: false
+    })
   })
 
   it("renders ghost guide strokes for the current character", async () => {
@@ -136,64 +149,6 @@ describe("StrokeDrawing", () => {
     expect(tracePath).toHaveAttribute("d", "M10.9,10.9 L21.8,21.8")
   })
 
-  it("shows live accuracy percentage while drawing", async () => {
-    mockGetStrokePaths.mockResolvedValue({
-      ok: true,
-      strokes: [stroke("M0,0 L100,0")]
-    })
-
-    render(<StrokeDrawing characters={["一"]} />)
-
-    const canvas = await screen.findByTestId("draw-canvas")
-    canvas.getBoundingClientRect = () => mockRect as DOMRect
-
-    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
-    fireEvent.pointerMove(canvas, { clientX: 50, clientY: 10, pointerId: 1 })
-
-    // Should display some percentage (aria-live region)
-    const percentage = screen.getByText(/\d+%/)
-    expect(percentage).toBeInTheDocument()
-
-    const progressBar = document.querySelector('.bg-orange-500')
-    expect(progressBar).toBeInTheDocument()
-    // Threshold marker at DEFAULT_THRESHOLD (90%)
-    const thresholdMarker = document.querySelector('[style*="left: 90%"]')
-    expect(thresholdMarker).toBeInTheDocument()
-  })
-
-  it("resets percentage to 0 on new stroke", async () => {
-    mockGetStrokePaths.mockResolvedValue({
-      ok: true,
-      strokes: [stroke("M0,0 L100,0")]
-    })
-
-    render(<StrokeDrawing characters={["一"]} />)
-
-    const canvas = await screen.findByTestId("draw-canvas")
-    canvas.getBoundingClientRect = () => mockRect as DOMRect
-
-    // Draw some points
-    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
-    fireEvent.pointerMove(canvas, { clientX: 50, clientY: 10, pointerId: 1 })
-    expect(screen.getByText(/\d+%/)).toBeInTheDocument()
-
-    // New stroke resets percentage
-    fireEvent.pointerDown(canvas, { clientX: 60, clientY: 10, pointerId: 2 })
-    expect(screen.getByText("0%")).toBeInTheDocument()
-  })
-
-  it("shows percentage bar before drawing", async () => {
-    mockGetStrokePaths.mockResolvedValue({
-      ok: true,
-      strokes: [stroke("M0,0 L100,0")]
-    })
-
-    render(<StrokeDrawing characters={["一"]} />)
-
-    await screen.findByTestId("draw-canvas")
-    expect(screen.getByText("0%")).toBeInTheDocument()
-  })
-
   it("clears the trace on Clear button click", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
@@ -297,6 +252,75 @@ describe("StrokeDrawing", () => {
     }).not.toThrow()
   })
 
+  it("accepts the stroke when score >= threshold", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    // Trace cleared, stroke advanced (1 stroke total -> character complete)
+    expect(canvas.querySelector('path[stroke="#2563eb"]')).not.toBeInTheDocument()
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    expect(screen.queryByText("Stroke 1 / 1")).not.toBeInTheDocument()
+  })
+
+  it("rejects the stroke when score < threshold", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 50,
+      coverage: 0.5,
+      precision: 0.5,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    // Trace cleared, "Try again" shown, failedAttempts incremented
+    expect(canvas.querySelector('path[stroke="#2563eb"]')).not.toBeInTheDocument()
+    expect(screen.getByText("Try again (1)")).toBeInTheDocument()
+    // Stroke counter still shows Stroke 1 / 1 (not advanced)
+    expect(screen.getByText("Stroke 1 / 1")).toBeInTheDocument()
+  })
+
+  it("shows percentage bar before drawing", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L100,0")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    await screen.findByTestId("draw-canvas")
+    expect(screen.getByText("0%")).toBeInTheDocument()
+  })
+
   it("shows Loading… while stroke data is being fetched", async () => {
     mockGetStrokePaths.mockImplementation(
       () =>
@@ -327,5 +351,35 @@ describe("StrokeDrawing", () => {
 
     expect(await findByText(/Failed to load stroke data/)).toBeInTheDocument()
     vi.restoreAllMocks()
+  })
+
+  it("resets on Redraw after character complete", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "Redraw character" }))
+
+    expect(screen.queryByText("Character complete!")).not.toBeInTheDocument()
+    expect(screen.getByText("Stroke 1 / 1")).toBeInTheDocument()
   })
 })

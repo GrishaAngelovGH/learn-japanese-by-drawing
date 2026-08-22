@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Undo2, Trash2 } from "lucide-react"
+import { Undo2, Trash2, RotateCcw } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
@@ -21,6 +21,10 @@ export function StrokeDrawing({ characters }: Props) {
   const [trace, setTrace] = useState<Point[]>([])
   const [isDrawing, setIsDrawing] = useState(false)
   const [score, setScore] = useState(0)
+  const [failedAttempts, setFailedAttempts] = useState(0)
+  const [characterComplete, setCharacterComplete] = useState(false)
+  const [showTryAgain, setShowTryAgain] = useState(false)
+  const [showAcceptFlash, setShowAcceptFlash] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
 
   const safeCharIndex = Math.min(
@@ -81,6 +85,35 @@ export function StrokeDrawing({ characters }: Props) {
   const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
     setIsDrawing(false)
     svgRef.current?.releasePointerCapture?.(event.pointerId)
+
+    if (!currentStroke || trace.length === 0) return
+
+    const result = scoreStroke(currentStroke.d, trace)
+    if (!result.judgeable) {
+      return
+    }
+
+    if (result.score >= DEFAULT_THRESHOLD) {
+      // Accept the stroke
+      setScore(0)
+      setTrace([])
+      setFailedAttempts(0)
+      setShowAcceptFlash(true)
+      setTimeout(() => setShowAcceptFlash(false), 300)
+
+      const nextStrokeIndex = strokeIndex + 1
+      setStrokeIndex(nextStrokeIndex)
+      if (nextStrokeIndex >= total) {
+        setCharacterComplete(true)
+      }
+    } else {
+      // Reject the stroke
+      setScore(0)
+      setTrace([])
+      setFailedAttempts((prev) => prev + 1)
+      setShowTryAgain(true)
+      setTimeout(() => setShowTryAgain(false), 1500)
+    }
   }
 
   const handlePointerCancel = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -103,6 +136,15 @@ export function StrokeDrawing({ characters }: Props) {
     } else {
       setScore(0)
     }
+  }
+
+  const handleRedraw = () => {
+    setStrokeIndex(0)
+    setTrace([])
+    setScore(0)
+    setFailedAttempts(0)
+    setCharacterComplete(false)
+    setShowTryAgain(false)
   }
 
   const traceD =
@@ -140,7 +182,10 @@ export function StrokeDrawing({ characters }: Props) {
                 width="48"
                 height="24"
                 viewBox="0 0 48 24"
-                style={{ transform: `rotate(${arrowProps.angle}deg)` }}
+                style={{
+                  transform: `rotate(${arrowProps.angle}deg)`,
+                  transformOrigin: "center center",
+                }}
               >
                 <defs>
                   <marker
@@ -194,7 +239,7 @@ export function StrokeDrawing({ characters }: Props) {
               ) : null
             )}
             {/* Current stroke: dashed orange border (wide orange underlay + narrow guide on top). */}
-            {currentStroke && (
+            {currentStroke && !characterComplete && (
               <>
                 <path
                   key="current-ink"
@@ -233,7 +278,7 @@ export function StrokeDrawing({ characters }: Props) {
               ) : null
             )}
             {/* Start arrow for the current stroke. */}
-            {arrowProps && (
+            {arrowProps && !characterComplete && (
               <path
                 key="start-arrow"
                 d="M-4,0 L4,-4 L4,4 Z"
@@ -255,50 +300,78 @@ export function StrokeDrawing({ characters }: Props) {
               />
             )}
           </svg>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              Stroke {strokeIndex + 1} / {total}
-            </span>
-            <button
-              type="button"
-              onClick={handleUndo}
-              disabled={trace.length === 0}
-              aria-label="Undo last point"
-              className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <Undo2 className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={trace.length === 0}
-              aria-label="Clear all"
-              className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <Trash2 className="size-4" />
-            </button>
-          </div>
-          {currentStroke && (
-            <div className="flex flex-col items-center gap-1">
-              <span
-                className="text-3xl font-mono tabular-nums text-zinc-900 dark:text-zinc-100"
-                aria-live="polite"
-              >
-                {score}%
+          {characterComplete ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Character complete!
               </span>
-              <div
-                className="w-32 h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden relative"
+              <button
+                type="button"
+                onClick={handleRedraw}
+                aria-label="Redraw character"
+                className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-colors"
               >
-                <div
-                  className="h-full bg-orange-500 transition-all duration-100"
-                  style={{ width: `${Math.min(score, 100)}%` }}
-                />
-                <div
-                  className="absolute top-0 bottom-0 w-0.5 bg-orange-300 dark:bg-orange-700"
-                  style={{ left: `${DEFAULT_THRESHOLD}%` }}
-                />
-              </div>
+                <RotateCcw className="size-4" />
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Stroke {strokeIndex + 1} / {total}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={trace.length === 0}
+                  aria-label="Undo last point"
+                  className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Undo2 className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={trace.length === 0}
+                  aria-label="Clear all"
+                  className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+              {showTryAgain && (
+                <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                  Try again ({failedAttempts})
+                </span>
+              )}
+              {showAcceptFlash && (
+                <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                  Great!
+                </span>
+              )}
+              {currentStroke && (
+                <div className="flex flex-col items-center gap-1">
+                  <span
+                    className="text-3xl font-mono tabular-nums text-zinc-900 dark:text-zinc-100"
+                    aria-live="polite"
+                  >
+                    {score}%
+                  </span>
+                  <div
+                    className="w-32 h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden relative"
+                  >
+                    <div
+                      className="h-full bg-orange-500 transition-all duration-100"
+                      style={{ width: `${Math.min(score, 100)}%` }}
+                    />
+                    <div
+                      className="absolute top-0 bottom-0 w-0.5 bg-orange-300 dark:bg-orange-700"
+                      style={{ left: `${DEFAULT_THRESHOLD}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
