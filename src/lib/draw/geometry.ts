@@ -19,14 +19,21 @@ export function sampleStroke(d: string, count: number): Point[] {
 }
 
 /**
- * Return the start point of a path and its initial tangent angle in degrees
+ * Return the start point of a path and its overall direction angle in degrees
  * (0° = pointing right, positive = clockwise).
+ *
+ * Computes the angle from the path's start point to its end point — this is
+ * the overall direction a human perceives for the stroke, and it's reliable
+ * even for curved KanjiVG strokes where the instantaneous tangent at the start
+ * can be misleading.
  */
 export function startDirection(d: string): { point: Point; angleDeg: number } {
   const props = new svgPathProperties(d)
   const point = props.getPointAtLength(0)
-  const tangent = props.getTangentAtLength(0)
-  const angleDeg = (Math.atan2(tangent.y, tangent.x) * 180) / Math.PI
+  const total = props.getTotalLength()
+  const endPoint = total > 0 ? props.getPointAtLength(total) : point
+  const angleDeg =
+    (Math.atan2(endPoint.y - point.y, endPoint.x - point.x) * 180) / Math.PI
   return { point, angleDeg }
 }
 

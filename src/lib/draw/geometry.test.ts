@@ -49,10 +49,11 @@ describe("startDirection", () => {
     expect(dir.angleDeg).toBeCloseTo(45)
   })
 
-  it("returns the initial tangent angle of a curve", () => {
+  it("returns the overall direction angle of a curve", () => {
     const dir = startDirection("M0,0 C10,10 20,-10 30,0")
     expect(dir.point).toEqual({ x: 0, y: 0 })
-    expect(dir.angleDeg).toBeCloseTo(45)
+    // Start (0,0) → end (30,0) is horizontal
+    expect(dir.angleDeg).toBeCloseTo(0)
   })
 })
 
