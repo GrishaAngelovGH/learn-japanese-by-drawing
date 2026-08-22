@@ -174,8 +174,8 @@ export function StrokeDrawing({ characters }: Props) {
       ) : (
         <>
           {currentStroke && arrowProps && (
-            <div className="mb-2 flex flex-col items-center gap-1">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="mt-8 mb-6 pb-6 flex flex-col items-center gap-2">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
                 Draw direction
               </span>
               <svg
@@ -376,7 +376,9 @@ export function StrokeDrawing({ characters }: Props) {
         </>
       )}
 
-      <KanjiVGAttribution />
+      <div className="max-w-[220px] text-center">
+        <KanjiVGAttribution />
+      </div>
     </div>
   )
 }
