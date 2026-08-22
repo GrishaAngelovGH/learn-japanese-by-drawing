@@ -24,7 +24,8 @@ describe("useKanjiStrokes", () => {
 
     expect(result.current.statusByChar["一"]).toBe("loading")
 
-    await act(async () => {})
+    // Flush the async fetch + state update so strokesByChar is populated
+    await act(async () => { })
 
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(1)
     expect(result.current.strokesByChar["一"]).toEqual([stroke("M1,1")])
@@ -39,11 +40,14 @@ describe("useKanjiStrokes", () => {
       { initialProps: { chars: ["一"] } }
     )
 
-    await act(async () => {})
+    await act(async () => { })
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(1)
 
     rerender({ chars: ["一"] })
-    await act(async () => {})
+
+    // Flush async fetch + state update after rerender
+    await act(async () => { })
+
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(1)
     expect(result.current.strokesByChar["一"]).toEqual([stroke("M1,1")])
   })
@@ -53,13 +57,16 @@ describe("useKanjiStrokes", () => {
 
     const { result } = renderHook(() => useKanjiStrokes(["あ"]))
 
-    await act(async () => {})
+    // Flush async fetch so statusByChar is set to "missing"
+    await act(async () => { })
 
     expect(result.current.statusByChar["あ"]).toBe("missing")
     expect(result.current.strokesByChar["あ"]).toBeUndefined()
   })
 
   it("reports error status and retries on a later render", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => { })
+
     mockGetStrokePaths
       .mockResolvedValueOnce({ ok: false, reason: "error" })
       .mockResolvedValue({ ok: true, strokes: [stroke("M1,1")] })
@@ -69,15 +76,22 @@ describe("useKanjiStrokes", () => {
       { initialProps: { chars: ["一"] } }
     )
 
-    await act(async () => {})
+    // Flush async fetch so statusByChar is set to "error"
+    await act(async () => { })
+
     expect(result.current.statusByChar["一"]).toBe("error")
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(1)
 
     rerender({ chars: ["一"] })
-    await act(async () => {})
+
+    // Flush async fetch + state update after retry
+    await act(async () => { })
+
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(2)
     expect(result.current.statusByChar["一"]).toBe("ready")
     expect(result.current.strokesByChar["一"]).toEqual([stroke("M1,1")])
+
+    vi.restoreAllMocks()
   })
 
   it("loads and caches under React Strict Mode", async () => {
@@ -87,7 +101,8 @@ describe("useKanjiStrokes", () => {
       wrapper: StrictMode
     })
 
-    await act(async () => {})
+    // Flush async fetch under Strict Mode double-effects
+    await act(async () => { })
 
     expect(mockGetStrokePaths).toHaveBeenCalledTimes(1)
     expect(result.current.statusByChar["一"]).toBe("ready")
