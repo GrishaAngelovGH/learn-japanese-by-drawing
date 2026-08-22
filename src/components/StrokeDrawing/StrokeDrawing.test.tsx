@@ -102,6 +102,19 @@ describe("StrokeDrawing", () => {
     expect(arrow).toHaveAttribute("transform", expect.stringMatching(/rotate\(45/))
   })
 
+  it("shows Draw direction arrow above the canvas", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    await screen.findByText("Draw direction")
+    const arrowLine = document.querySelector('line[marker-end="url(#direction-arrow)"]')
+    expect(arrowLine).toBeInTheDocument()
+  })
+
   it("captures a pointer trace on the canvas", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
@@ -249,10 +262,12 @@ describe("StrokeDrawing", () => {
   })
 
   it("shows an error message when stroke loading fails", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {})
     mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "error" })
 
     const { findByText } = render(<StrokeDrawing characters={["一"]} />)
 
     expect(await findByText(/Failed to load stroke data/)).toBeInTheDocument()
+    vi.restoreAllMocks()
   })
 })

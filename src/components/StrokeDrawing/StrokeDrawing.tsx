@@ -114,6 +114,42 @@ export function StrokeDrawing({ characters }: Props) {
         </>
       ) : (
         <>
+          {currentStroke && arrowProps && (
+            <div className="mb-2 flex flex-col items-center gap-1">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                Draw direction
+              </span>
+              <svg
+                width="48"
+                height="24"
+                viewBox="0 0 48 24"
+                style={{ transform: `rotate(${arrowProps.angle}deg)` }}
+              >
+                <defs>
+                  <marker
+                    id="direction-arrow"
+                    markerWidth="10"
+                    markerHeight="10"
+                    refX="9"
+                    refY="5"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L0,10 L9,5 Z" fill="#f97316" />
+                  </marker>
+                </defs>
+                <line
+                  x1="6"
+                  y1="12"
+                  x2="42"
+                  y2="12"
+                  stroke="#f97316"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  markerEnd="url(#direction-arrow)"
+                />
+              </svg>
+            </div>
+          )}
           <svg
             ref={svgRef}
             viewBox="0 0 109 109"
