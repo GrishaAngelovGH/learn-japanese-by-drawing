@@ -4,6 +4,8 @@ import { useRef, useState } from "react"
 import { Undo2, Trash2 } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
+import { scoreStroke } from "@/lib/draw/score"
+import { DEFAULT_THRESHOLD } from "@/lib/draw/config"
 import { KanjiVGAttribution } from "@/components/StrokePreview/KanjiVGAttribution"
 
 type Props = {
@@ -18,6 +20,7 @@ export function StrokeDrawing({ characters }: Props) {
   const [strokeIndex, setStrokeIndex] = useState(0)
   const [trace, setTrace] = useState<Point[]>([])
   const [isDrawing, setIsDrawing] = useState(false)
+  const [score, setScore] = useState(0)
   const svgRef = useRef<SVGSVGElement>(null)
 
   const safeCharIndex = Math.min(
@@ -60,13 +63,19 @@ export function StrokeDrawing({ characters }: Props) {
     svgRef.current?.setPointerCapture?.(event.pointerId)
     setIsDrawing(true)
     setTrace([point])
+    setScore(0)
   }
 
   const handlePointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
     if (!isDrawing) return
     const point = toViewBoxPoint(event, svgRef.current)
     if (!point) return
-    setTrace((prev) => [...prev, point])
+    const newTrace = [...trace, point]
+    setTrace(newTrace)
+    if (currentStroke) {
+      const result = scoreStroke(currentStroke.d, newTrace)
+      setScore(result.score)
+    }
   }
 
   const handlePointerUp = (event: React.PointerEvent<SVGSVGElement>) => {
@@ -82,10 +91,18 @@ export function StrokeDrawing({ characters }: Props) {
   const handleClear = () => {
     setIsDrawing(false)
     setTrace([])
+    setScore(0)
   }
 
   const handleUndo = () => {
-    setTrace((prev) => prev.slice(0, -1))
+    const nextTrace = trace.slice(0, -1)
+    setTrace(nextTrace)
+    if (currentStroke && nextTrace.length > 0) {
+      const result = scoreStroke(currentStroke.d, nextTrace)
+      setScore(result.score)
+    } else {
+      setScore(0)
+    }
   }
 
   const traceD =
@@ -261,6 +278,28 @@ export function StrokeDrawing({ characters }: Props) {
               <Trash2 className="size-4" />
             </button>
           </div>
+          {currentStroke && (
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className="text-3xl font-mono tabular-nums text-zinc-900 dark:text-zinc-100"
+                aria-live="polite"
+              >
+                {score}%
+              </span>
+              <div
+                className="w-32 h-1.5 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden relative"
+              >
+                <div
+                  className="h-full bg-orange-500 transition-all duration-100"
+                  style={{ width: `${Math.min(score, 100)}%` }}
+                />
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-orange-300 dark:bg-orange-700"
+                  style={{ left: `${DEFAULT_THRESHOLD}%` }}
+                />
+              </div>
+            </div>
+          )}
         </>
       )}
 

@@ -136,6 +136,64 @@ describe("StrokeDrawing", () => {
     expect(tracePath).toHaveAttribute("d", "M10.9,10.9 L21.8,21.8")
   })
 
+  it("shows live accuracy percentage while drawing", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L100,0")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 50, clientY: 10, pointerId: 1 })
+
+    // Should display some percentage (aria-live region)
+    const percentage = screen.getByText(/\d+%/)
+    expect(percentage).toBeInTheDocument()
+
+    const progressBar = document.querySelector('.bg-orange-500')
+    expect(progressBar).toBeInTheDocument()
+    // Threshold marker at DEFAULT_THRESHOLD (90%)
+    const thresholdMarker = document.querySelector('[style*="left: 90%"]')
+    expect(thresholdMarker).toBeInTheDocument()
+  })
+
+  it("resets percentage to 0 on new stroke", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L100,0")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    // Draw some points
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 50, clientY: 10, pointerId: 1 })
+    expect(screen.getByText(/\d+%/)).toBeInTheDocument()
+
+    // New stroke resets percentage
+    fireEvent.pointerDown(canvas, { clientX: 60, clientY: 10, pointerId: 2 })
+    expect(screen.getByText("0%")).toBeInTheDocument()
+  })
+
+  it("shows percentage bar before drawing", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L100,0")]
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    await screen.findByTestId("draw-canvas")
+    expect(screen.getByText("0%")).toBeInTheDocument()
+  })
+
   it("clears the trace on Clear button click", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
