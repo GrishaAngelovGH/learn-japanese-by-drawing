@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { Undo2, Trash2, RotateCcw } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
+import { useConfetti } from "@/hooks/useConfetti"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
 import { DEFAULT_THRESHOLD } from "@/lib/draw/config"
@@ -27,6 +28,7 @@ export function StrokeDrawing({ characters }: Props) {
   const [wordComplete, setWordComplete] = useState(false)
   const [showTryAgain, setShowTryAgain] = useState(false)
   const [showAcceptFlash, setShowAcceptFlash] = useState(false)
+  const { triggerConfetti } = useConfetti()
   const svgRef = useRef<SVGSVGElement>(null)
 
   const safeCharIndex = Math.min(
@@ -113,6 +115,7 @@ export function StrokeDrawing({ characters }: Props) {
           setCharacterComplete(true)
           setWordComplete(true)
           playWordComplete()
+          triggerConfetti()
         } else {
           setCharacterComplete(true)
           playCharacterComplete()

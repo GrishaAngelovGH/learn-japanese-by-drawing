@@ -17,6 +17,9 @@ vi.mock("@/lib/audio", () => ({
   playCharacterComplete: vi.fn(),
   playWordComplete: vi.fn()
 }))
+vi.mock("canvas-confetti", () => ({
+  default: vi.fn()
+}))
 
 const mockGetStrokePaths = vi.mocked(getStrokePaths)
 const mockScoreStroke = vi.mocked(scoreStroke)
