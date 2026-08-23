@@ -23,6 +23,7 @@ export function StrokeDrawing({ characters }: Props) {
   const [score, setScore] = useState(0)
   const [failedAttempts, setFailedAttempts] = useState(0)
   const [characterComplete, setCharacterComplete] = useState(false)
+  const [wordComplete, setWordComplete] = useState(false)
   const [showTryAgain, setShowTryAgain] = useState(false)
   const [showAcceptFlash, setShowAcceptFlash] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -41,6 +42,7 @@ export function StrokeDrawing({ characters }: Props) {
     setCharacterIndex(0)
     setStrokeIndex(0)
     setTrace([])
+    setWordComplete(false)
   }
 
   const status = activeChar ? statusByChar[activeChar] : undefined
@@ -144,7 +146,39 @@ export function StrokeDrawing({ characters }: Props) {
     setScore(0)
     setFailedAttempts(0)
     setCharacterComplete(false)
+    setWordComplete(false)
     setShowTryAgain(false)
+  }
+
+  const resetCharacterProgress = () => {
+    setStrokeIndex(0)
+    setTrace([])
+    setScore(0)
+    setFailedAttempts(0)
+    setCharacterComplete(false)
+    setWordComplete(false)
+    setShowTryAgain(false)
+  }
+
+  const handleNextCharacter = () => {
+    if (characterIndex < characters.length - 1) {
+      setCharacterIndex((prev) => prev + 1)
+      resetCharacterProgress()
+    } else {
+      // Last character - mark word as complete
+      setWordComplete(true)
+    }
+  }
+
+  const handlePrevCharacter = () => {
+    if (characterIndex > 0) {
+      setCharacterIndex((prev) => prev - 1)
+      resetCharacterProgress()
+    }
+  }
+
+  const handleSkipCharacter = () => {
+    handleNextCharacter()
   }
 
   const traceD =
@@ -154,7 +188,16 @@ export function StrokeDrawing({ characters }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {status === "loading" ? (
+      {wordComplete ? (
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            Word complete!
+          </span>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Press Next to practice the next word.
+          </p>
+        </div>
+      ) : status === "loading" ? (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">Loading…</p>
       ) : status === "error" ? (
         <p className="text-xs text-orange-600 dark:text-orange-400">
@@ -170,9 +213,38 @@ export function StrokeDrawing({ characters }: Props) {
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs">
             No stroke data for this character.
           </p>
+          <button
+            type="button"
+            onClick={handleSkipCharacter}
+            aria-label="Skip this character"
+            className="text-xs text-orange-600 dark:text-orange-400 hover:underline"
+          >
+            Skip
+          </button>
         </>
       ) : (
         <>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrevCharacter}
+              disabled={characterIndex === 0}
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
+            >
+              ‹ Prev
+            </button>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              Character {characterIndex + 1} of {characters.length}
+            </span>
+            <button
+              type="button"
+              onClick={handleNextCharacter}
+              disabled={characterIndex >= characters.length - 1 && !characterComplete}
+              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
+            >
+              Next ›
+            </button>
+          </div>
           {currentStroke && arrowProps && (
             <div className="flex flex-col items-center gap-1 h-17">
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -307,14 +379,26 @@ export function StrokeDrawing({ characters }: Props) {
               <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Character complete!
               </span>
-              <button
-                type="button"
-                onClick={handleRedraw}
-                aria-label="Redraw character"
-                className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-colors"
-              >
-                <RotateCcw className="size-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRedraw}
+                  aria-label="Redraw character"
+                  className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-colors"
+                >
+                  <RotateCcw className="size-4" />
+                </button>
+                {characterIndex < characters.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={handleNextCharacter}
+                    aria-label="Next character"
+                    className="px-3 py-1 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium transition-colors"
+                  >
+                    Next character
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <>

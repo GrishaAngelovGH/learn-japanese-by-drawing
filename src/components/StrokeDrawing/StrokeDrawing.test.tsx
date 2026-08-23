@@ -382,4 +382,241 @@ describe("StrokeDrawing", () => {
     expect(screen.queryByText("Character complete!")).not.toBeInTheDocument()
     expect(screen.getByText("Stroke 1 / 1")).toBeInTheDocument()
   })
+
+  it("shows Character X of Y counter", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    expect(await screen.findByText("Character 1 of 2")).toBeInTheDocument()
+  })
+
+  it("navigates to next character with Next button", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    await screen.findByText("Character 1 of 2")
+
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+
+    expect(screen.getByText("Character 2 of 2")).toBeInTheDocument()
+  })
+
+  it("navigates to previous character with Prev button", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    await screen.findByText("Character 1 of 2")
+
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+    expect(screen.getByText("Character 2 of 2")).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("button", { name: "‹ Prev" }))
+    expect(screen.getByText("Character 1 of 2")).toBeInTheDocument()
+  })
+
+  it("disables Prev button on first character", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    await screen.findByText("Character 1 of 2")
+    const prevButton = screen.getByRole("button", { name: "‹ Prev" })
+    expect(prevButton).toBeDisabled()
+  })
+
+  it("resets stroke progress when navigating to next character", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10"), stroke("M5,5 L15,15")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    // Complete first stroke of first character
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Stroke 2 / 2")).toBeInTheDocument()
+
+    // Navigate to next character
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+
+    // Stroke progress should be reset
+    expect(screen.getByText("Stroke 1 / 2")).toBeInTheDocument()
+  })
+
+  it("shows Skip button for characters with missing stroke data", async () => {
+    mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
+
+    render(<StrokeDrawing characters={["あ", "一"]} />)
+
+    await screen.findByText("あ")
+    expect(screen.getByRole("button", { name: "Skip this character" })).toBeInTheDocument()
+  })
+
+  it("navigates to next character on Skip button click", async () => {
+    mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
+
+    render(<StrokeDrawing characters={["あ", "一"]} />)
+
+    await screen.findByText("あ")
+
+    fireEvent.click(screen.getByRole("button", { name: "Skip this character" }))
+
+    // After skip, should load the next character
+    expect(screen.queryByText("あ")).not.toBeInTheDocument()
+  })
+
+  it("shows Next character button after character complete (if not last)", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Next character" })).toBeInTheDocument()
+  })
+
+  it("does not show Next character button after last character complete", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Next character" })).not.toBeInTheDocument()
+  })
+
+  it("shows Word complete after clicking Next on last character", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+
+    // Click the top Next button to trigger word complete
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+
+    expect(screen.getByText("Word complete!")).toBeInTheDocument()
+    expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
+  })
+
+  it("shows Word complete after completing all characters", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    // Complete first character
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+
+    // Click Next character button
+    fireEvent.click(screen.getByRole("button", { name: "Next character" }))
+
+    // Complete second character (last character)
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    // Last character should not show "Next character" button
+    expect(screen.queryByRole("button", { name: "Next character" })).not.toBeInTheDocument()
+
+    // Click the top Next button to trigger word complete
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+
+    expect(screen.getByText("Word complete!")).toBeInTheDocument()
+    expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
+  })
 })
