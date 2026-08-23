@@ -290,6 +290,9 @@ export function StrokeDrawing({ characters }: Props) {
             ref={svgRef}
             viewBox="0 0 109 109"
             className="w-44 h-44 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 touch-none"
+            style={{
+              cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%238B4513' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08'/%3E%3Cpath d='M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02Z'/%3E%3C/svg%3E") 0 32, auto`
+            }}
             data-testid="draw-canvas"
             aria-label="Draw the current stroke here"
             xmlns="http://www.w3.org/2000/svg"
