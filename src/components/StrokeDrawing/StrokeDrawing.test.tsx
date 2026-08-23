@@ -3,6 +3,7 @@ import { vi } from "vitest"
 import { StrokeDrawing } from "./StrokeDrawing"
 import { getStrokePaths } from "@/lib/kanjivg"
 import { scoreStroke } from "@/lib/draw/score"
+import * as audio from "@/lib/audio"
 
 vi.mock("@/lib/kanjivg", () => ({
   getStrokePaths: vi.fn()
@@ -10,9 +11,18 @@ vi.mock("@/lib/kanjivg", () => ({
 vi.mock("@/lib/draw/score", () => ({
   scoreStroke: vi.fn()
 }))
+vi.mock("@/lib/audio", () => ({
+  playStrokeSuccess: vi.fn(),
+  playStrokeFailure: vi.fn(),
+  playCharacterComplete: vi.fn(),
+  playWordComplete: vi.fn()
+}))
 
 const mockGetStrokePaths = vi.mocked(getStrokePaths)
 const mockScoreStroke = vi.mocked(scoreStroke)
+const mockPlayStrokeSuccess = vi.mocked(audio.playStrokeSuccess)
+const mockPlayStrokeFailure = vi.mocked(audio.playStrokeFailure)
+const mockPlayCharacterComplete = vi.mocked(audio.playCharacterComplete)
 
 const stroke = (d: string) => ({ strokeNumber: 1, d, type: "㇐" })
 
@@ -265,7 +275,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -366,7 +376,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -532,20 +542,25 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
 
+    // Navigate to last character
+    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+
+    // Complete last character
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    // Last character should show Word complete directly (not Character complete)
+    expect(screen.getByText("Word complete!")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Next character" })).not.toBeInTheDocument()
   })
 
-  it("shows Word complete after clicking Next on last character", async () => {
+  it("shows Word complete after completing last character", async () => {
     mockGetStrokePaths.mockResolvedValue({
       ok: true,
       strokes: [stroke("M0,0 L10,10")]
@@ -567,11 +582,7 @@ describe("StrokeDrawing", () => {
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    expect(screen.getByText("Character complete!")).toBeInTheDocument()
-
-    // Click the top Next button to trigger word complete
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
-
+    // Single character word should go directly to Word complete
     expect(screen.getByText("Word complete!")).toBeInTheDocument()
     expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
   })
@@ -604,19 +615,49 @@ describe("StrokeDrawing", () => {
     // Click Next character button
     fireEvent.click(screen.getByRole("button", { name: "Next character" }))
 
-    // Complete second character (last character)
+    // Complete second character (last character) - should auto go to Word complete
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    expect(screen.getByText("Character complete!")).toBeInTheDocument()
-    // Last character should not show "Next character" button
-    expect(screen.queryByRole("button", { name: "Next character" })).not.toBeInTheDocument()
-
-    // Click the top Next button to trigger word complete
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
-
     expect(screen.getByText("Word complete!")).toBeInTheDocument()
     expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
+  })
+
+  it("plays sound effects on stroke accept, reject, and completion", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M0,0 L10,10")]
+    })
+
+    render(<StrokeDrawing characters={["一", "二"]} />)
+
+    const canvas = await screen.findByTestId("draw-canvas")
+    canvas.getBoundingClientRect = () => mockRect as DOMRect
+
+    // Accept stroke - should play success sound
+    mockScoreStroke.mockReturnValue({
+      score: 95,
+      coverage: 1,
+      precision: 1,
+      judgeable: true
+    })
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    expect(mockPlayStrokeSuccess).toHaveBeenCalled()
+    expect(mockPlayCharacterComplete).toHaveBeenCalled()
+
+    // Reject stroke - should play failure sound
+    mockScoreStroke.mockReturnValue({
+      score: 50,
+      coverage: 0.5,
+      precision: 0.5,
+      judgeable: true
+    })
+    fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
+    expect(mockPlayStrokeFailure).toHaveBeenCalled()
   })
 })

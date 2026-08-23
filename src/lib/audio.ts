@@ -125,3 +125,118 @@ export function playPrev() {
     osc.stop(ctx.currentTime + 0.18)
   } catch {}
 }
+
+/**
+ * Plays a pleasant "ding" sound when a stroke reaches 100% accuracy.
+ * A bright, cheerful tone to provide positive feedback.
+ */
+export function playStrokeSuccess() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(880, ctx.currentTime) // A5
+    osc.frequency.exponentialRampToValueAtTime(1108.73, ctx.currentTime + 0.05) // C#6 for brightness
+
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
+
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.25)
+  } catch {}
+}
+
+/**
+ * Plays a gentle "no" sound when a stroke doesn't meet the threshold.
+ * A low, soft tone to indicate the stroke needs to be retried.
+ */
+export function playStrokeFailure() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(220, ctx.currentTime) // A3
+    osc.frequency.exponentialRampToValueAtTime(196, ctx.currentTime + 0.1) // G3 for a subtle downward slide
+
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.2)
+  } catch {}
+}
+
+/**
+ * Plays a celebratory sound when a character is complete.
+ * A two-note ascending sequence to indicate success.
+ */
+export function playCharacterComplete() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+
+    const notes = [523.25, 659.25, 783.99] // C5, E5, G5 - a major chord arpeggio
+    const noteDuration = 0.08
+    let startTime = ctx.currentTime
+
+    notes.forEach((freq) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0, startTime)
+      gain.gain.linearRampToValueAtTime(0.2, startTime + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + noteDuration)
+      osc.connect(gain).connect(ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + noteDuration)
+      startTime += noteDuration
+    })
+  } catch {}
+}
+
+/**
+ * Plays a triumphant sound when a word is complete.
+ * A longer, more elaborate sequence to celebrate finishing the entire word.
+ */
+export function playWordComplete() {
+  try {
+    const ctx = getAudioContext()
+    if (ctx.state === "suspended") ctx.resume()
+
+    // A major scale arpeggio for a triumphant feel
+    const notes = [523.25, 659.25, 783.99, 1046.5] // C5, E5, G5, C6
+    const noteDuration = 0.1
+    let startTime = ctx.currentTime
+
+    notes.forEach((freq) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(freq, startTime)
+      gain.gain.setValueAtTime(0, startTime)
+      gain.gain.linearRampToValueAtTime(0.25, startTime + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + noteDuration)
+      osc.connect(gain).connect(ctx.destination)
+      osc.start(startTime)
+      osc.stop(startTime + noteDuration)
+      startTime += noteDuration
+    })
+  } catch {}
+}

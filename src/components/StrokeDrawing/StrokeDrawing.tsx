@@ -7,6 +7,7 @@ import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
 import { DEFAULT_THRESHOLD } from "@/lib/draw/config"
 import { KanjiVGAttribution } from "@/components/StrokePreview/KanjiVGAttribution"
+import { playStrokeSuccess, playStrokeFailure, playCharacterComplete, playWordComplete } from "@/lib/audio"
 
 type Props = {
   characters: string[]
@@ -97,6 +98,7 @@ export function StrokeDrawing({ characters }: Props) {
 
     if (result.score >= DEFAULT_THRESHOLD) {
       // Accept the stroke
+      playStrokeSuccess()
       setScore(0)
       setTrace([])
       setFailedAttempts(0)
@@ -106,10 +108,19 @@ export function StrokeDrawing({ characters }: Props) {
       const nextStrokeIndex = strokeIndex + 1
       setStrokeIndex(nextStrokeIndex)
       if (nextStrokeIndex >= total) {
-        setCharacterComplete(true)
+        // Check if this is the last character of the word
+        if (characterIndex === characters.length - 1) {
+          setCharacterComplete(true)
+          setWordComplete(true)
+          playWordComplete()
+        } else {
+          setCharacterComplete(true)
+          playCharacterComplete()
+        }
       }
     } else {
       // Reject the stroke
+      playStrokeFailure()
       setScore(0)
       setTrace([])
       setFailedAttempts((prev) => prev + 1)
@@ -167,6 +178,7 @@ export function StrokeDrawing({ characters }: Props) {
     } else {
       // Last character - mark word as complete
       setWordComplete(true)
+      playWordComplete()
     }
   }
 
