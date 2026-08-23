@@ -80,7 +80,7 @@ function PracticeContent() {
           {/* Two-column layout: canvas left, word info right */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
-            <div className="min-h-[384px] rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
+            <div className="h-121.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
               {mode === "draw" ? (
                 <StrokeDrawing characters={currentWord.characters} />
               ) : mode === "preview" ? (

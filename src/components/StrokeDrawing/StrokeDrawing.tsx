@@ -174,14 +174,16 @@ export function StrokeDrawing({ characters }: Props) {
       ) : (
         <>
           {currentStroke && arrowProps && (
-            <div className="mt-8 mb-6 pb-6 flex flex-col items-center gap-2">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+            <div className="flex flex-col items-center gap-1 h-17">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 Draw direction
               </span>
               <svg
                 width="48"
-                height="24"
-                viewBox="0 0 48 24"
+                height="48"
+                viewBox="0 12 48 24"
+                overflow="visible"
+                className="shrink-0"
                 style={{
                   transform: `rotate(${arrowProps.angle}deg)`,
                   transformOrigin: "center center",
@@ -339,18 +341,20 @@ export function StrokeDrawing({ characters }: Props) {
                   <Trash2 className="size-4" />
                 </button>
               </div>
-              {showTryAgain && (
-                <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                  Try again ({failedAttempts})
-                </span>
-              )}
-              {showAcceptFlash && (
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                  Great!
-                </span>
-              )}
               {currentStroke && (
-                <div className="flex flex-col items-center gap-1">
+                <div className="relative flex flex-col items-center gap-1">
+                  {/* Overlaid in the gap above the score, so it takes no layout space. */}
+                  <div className="absolute -top-4 inset-x-0 h-4 flex items-center justify-center pointer-events-none">
+                    {showTryAgain ? (
+                      <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                        Try again ({failedAttempts})
+                      </span>
+                    ) : showAcceptFlash ? (
+                      <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                        Great!
+                      </span>
+                    ) : null}
+                  </div>
                   <span
                     className="text-3xl font-mono tabular-nums text-zinc-900 dark:text-zinc-100"
                     aria-live="polite"
@@ -376,7 +380,7 @@ export function StrokeDrawing({ characters }: Props) {
         </>
       )}
 
-      <div className="max-w-[220px] text-center">
+      <div className="max-w-55 text-center">
         <KanjiVGAttribution />
       </div>
     </div>
