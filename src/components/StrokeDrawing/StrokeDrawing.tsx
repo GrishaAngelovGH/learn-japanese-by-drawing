@@ -3,7 +3,7 @@
 import { useRef, useState } from "react"
 import { Undo2, Trash2, RotateCcw } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
-import { useConfetti } from "@/hooks/useConfetti"
+import { useCompletedWords } from "@/hooks/useCompletedWords"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
 import { DEFAULT_THRESHOLD } from "@/lib/draw/config"
@@ -12,13 +12,16 @@ import { playStrokeSuccess, playStrokeFailure, playCharacterComplete, playWordCo
 
 type Props = {
   characters: string[]
+  wordId: string
 }
 
 const ARROW_OFFSET = 4
 
-export function StrokeDrawing({ characters }: Props) {
+export function StrokeDrawing({ characters, wordId }: Props) {
   const { strokesByChar, statusByChar } = useKanjiStrokes(characters)
+  const { markCompleted, triggerConfetti } = useCompletedWords()
   const [characterIndex, setCharacterIndex] = useState(0)
+  const svgRef = useRef<SVGSVGElement>(null)
   const [strokeIndex, setStrokeIndex] = useState(0)
   const [trace, setTrace] = useState<Point[]>([])
   const [isDrawing, setIsDrawing] = useState(false)
@@ -28,8 +31,6 @@ export function StrokeDrawing({ characters }: Props) {
   const [wordComplete, setWordComplete] = useState(false)
   const [showTryAgain, setShowTryAgain] = useState(false)
   const [showAcceptFlash, setShowAcceptFlash] = useState(false)
-  const { triggerConfetti } = useConfetti()
-  const svgRef = useRef<SVGSVGElement>(null)
 
   const safeCharIndex = Math.min(
     characterIndex,
@@ -116,6 +117,7 @@ export function StrokeDrawing({ characters }: Props) {
           setWordComplete(true)
           playWordComplete()
           triggerConfetti()
+          markCompleted(wordId)
         } else {
           setCharacterComplete(true)
           playCharacterComplete()

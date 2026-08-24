@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, RotateCcw, Volume2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
 import { StrokeDrawing } from "@/components/StrokeDrawing"
@@ -11,6 +11,7 @@ import words from "@/data/words"
 import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
 import useViewTransition from "@/hooks/useViewTransition"
+import { useCompletedWords } from "@/hooks/useCompletedWords"
 
 function PracticeContent() {
   const { push } = useViewTransition()
@@ -19,6 +20,8 @@ function PracticeContent() {
   const sessionCount = Math.min(countParam ? parseInt(countParam, 10) : words.length, words.length)
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const currentWord = words[currentIndex]
+
+  const { isCompleted } = useCompletedWords()
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
@@ -82,7 +85,7 @@ function PracticeContent() {
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-121.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
               {mode === "draw" ? (
-                <StrokeDrawing characters={currentWord.characters} />
+                <StrokeDrawing characters={currentWord.characters} wordId={currentWord.id} />
               ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
               ) : mode === "idle" && isSpeaking ? (
@@ -118,6 +121,12 @@ function PracticeContent() {
                 >
                   {currentWord.text}
                 </h1>
+                {isCompleted(currentWord.id) && (
+                  <span className="flex items-center justify-center gap-1.5 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-green-600 dark:text-green-400 font-bold text-sm mt-1">
+                    <Check className="size-5" />
+                    <span>Complete</span>
+                  </span>
+                )}
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">

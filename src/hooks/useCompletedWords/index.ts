@@ -1,0 +1,1 @@
+export { useCompletedWords } from "./useCompletedWords"

@@ -55,7 +55,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     expect(canvas).toHaveAttribute("viewBox", "0 0 109 109")
@@ -69,7 +69,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     const orange = canvas.querySelectorAll('path[stroke="#f97316"]')
@@ -83,7 +83,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M1,1 L10,10"), stroke("M2,2 L20,20")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     const ghost = canvas.querySelectorAll('path[stroke="#e5e7eb"][stroke-width="2"]')
@@ -97,7 +97,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     const arrow = canvas.querySelector('path[d="M-4,0 L4,-4 L4,4 Z"]')
@@ -110,7 +110,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M1,1"), stroke("M2,2")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     expect(await screen.findByText("Stroke 1 / 2")).toBeInTheDocument()
   })
@@ -121,7 +121,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     const arrow = canvas.querySelector('path[d="M-4,0 L4,-4 L4,4 Z"]')
@@ -134,7 +134,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     await screen.findByText("Draw direction")
     const arrowLine = document.querySelector('line[marker-end="url(#direction-arrow)"]')
@@ -147,7 +147,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -168,7 +168,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -186,7 +186,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -213,7 +213,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     await screen.findByTestId("draw-canvas")
     const undo = screen.getByRole("button", { name: "Undo last point" })
@@ -228,7 +228,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -255,7 +255,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -278,7 +278,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -306,7 +306,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -328,7 +328,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L100,0")]
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     await screen.findByTestId("draw-canvas")
     expect(screen.getByText("0%")).toBeInTheDocument()
@@ -342,7 +342,7 @@ describe("StrokeDrawing", () => {
         })
     )
 
-    const { findByText } = render(<StrokeDrawing characters={["一"]} />)
+    const { findByText } = render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     await findByText("Loading…")
   })
@@ -350,7 +350,7 @@ describe("StrokeDrawing", () => {
   it("shows the plain character and a note when stroke data is missing", async () => {
     mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
 
-    const { findByText } = render(<StrokeDrawing characters={["あ"]} />)
+    const { findByText } = render(<StrokeDrawing characters={["あ"]} wordId="test-word" />)
 
     await findByText("あ")
     expect(await findByText(/No stroke data for this character/)).toBeInTheDocument()
@@ -360,7 +360,7 @@ describe("StrokeDrawing", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {})
     mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "error" })
 
-    const { findByText } = render(<StrokeDrawing characters={["一"]} />)
+    const { findByText } = render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     expect(await findByText(/Failed to load stroke data/)).toBeInTheDocument()
     vi.restoreAllMocks()
@@ -379,7 +379,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -402,7 +402,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     expect(await screen.findByText("Character 1 of 2")).toBeInTheDocument()
   })
@@ -413,7 +413,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     await screen.findByText("Character 1 of 2")
 
@@ -428,7 +428,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     await screen.findByText("Character 1 of 2")
 
@@ -445,7 +445,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     await screen.findByText("Character 1 of 2")
     const prevButton = screen.getByRole("button", { name: "‹ Prev" })
@@ -465,7 +465,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -487,7 +487,7 @@ describe("StrokeDrawing", () => {
   it("shows Skip button for characters with missing stroke data", async () => {
     mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
 
-    render(<StrokeDrawing characters={["あ", "一"]} />)
+    render(<StrokeDrawing characters={["あ", "一"]} wordId="test-word" />)
 
     await screen.findByText("あ")
     expect(screen.getByRole("button", { name: "Skip this character" })).toBeInTheDocument()
@@ -496,7 +496,7 @@ describe("StrokeDrawing", () => {
   it("navigates to next character on Skip button click", async () => {
     mockGetStrokePaths.mockResolvedValue({ ok: false, reason: "missing" })
 
-    render(<StrokeDrawing characters={["あ", "一"]} />)
+    render(<StrokeDrawing characters={["あ", "一"]} wordId="test-word" />)
 
     await screen.findByText("あ")
 
@@ -519,7 +519,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -545,7 +545,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -576,7 +576,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一"]} />)
+    render(<StrokeDrawing characters={["一"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -603,7 +603,7 @@ describe("StrokeDrawing", () => {
       judgeable: true
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
@@ -633,7 +633,7 @@ describe("StrokeDrawing", () => {
       strokes: [stroke("M0,0 L10,10")]
     })
 
-    render(<StrokeDrawing characters={["一", "二"]} />)
+    render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     const canvas = await screen.findByTestId("draw-canvas")
     canvas.getBoundingClientRect = () => mockRect as DOMRect
