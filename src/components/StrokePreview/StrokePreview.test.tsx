@@ -33,9 +33,10 @@ describe("StrokePreview", () => {
 
     await findByText("Stroke 1 / 2")
     // 2 faint guide paths + 2 animated ink paths.
-    const ink = container.querySelectorAll('svg path[stroke="#f97316"]')
-    expect(container.querySelectorAll("svg path")).toHaveLength(4)
-    expect(ink).toHaveLength(2)
+const svg = container.querySelector('svg[viewBox="0 0 109 109"]')!
+const ink = svg.querySelectorAll('path[stroke="#f97316"]')
+expect(svg.querySelectorAll("path")).toHaveLength(4)
+expect(ink).toHaveLength(2)
     // Strokes are traced via dashoffset (an actual animation), not toggled.
     expect(ink[0]).toHaveAttribute("stroke-dashoffset", "0")
     expect(ink[1]).toHaveAttribute("stroke-dashoffset", "1")
@@ -89,7 +90,7 @@ describe("StrokePreview", () => {
     // Animation starts at 0 strokes; wait for it to reach "Complete".
     expect(await findByText("Complete")).toBeInTheDocument()
 
-    const next = await findByRole("button", { name: "Next ›" })
+    const next = await findByRole("button", { name: "Next character" })
     await act(async () => {
       fireEvent.click(next)
     })
