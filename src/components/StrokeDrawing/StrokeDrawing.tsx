@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Undo2, Trash2, RotateCcw } from "lucide-react"
+import { Undo2, Trash2, RotateCcw, ArrowLeft, ArrowRight } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
@@ -204,7 +204,7 @@ export function StrokeDrawing({ characters, wordId }: Props) {
       : ""
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-2">
       {wordComplete ? (
         <div className="flex flex-col items-center gap-2">
           <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -241,27 +241,31 @@ export function StrokeDrawing({ characters, wordId }: Props) {
         </>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePrevCharacter}
-              disabled={characterIndex === 0}
-              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
-            >
-              ‹ Prev
-            </button>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400">
-              Character {characterIndex + 1} of {characters.length}
-            </span>
-            <button
-              type="button"
-              onClick={handleNextCharacter}
-              disabled={characterIndex >= characters.length - 1 && !characterComplete}
-              className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
-            >
-              Next ›
-            </button>
-          </div>
+          {!characterComplete ? (
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                type="button"
+                onClick={handlePrevCharacter}
+                disabled={characterIndex === 0}
+                aria-label="Prev character"
+                className="w-6 h-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowLeft className="size-3" />
+              </button>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                Character {characterIndex + 1} of {characters.length}
+              </span>
+              <button
+                type="button"
+                onClick={handleNextCharacter}
+                disabled={characterIndex >= characters.length - 1 && !characterComplete}
+                aria-label="Next character"
+                className="w-6 h-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowRight className="size-3" />
+              </button>
+            </div>
+          ) : null}
           {currentStroke && arrowProps && (
             <div className="flex flex-col items-center gap-1 h-17">
               <span className="text-xs text-zinc-500 dark:text-zinc-400">

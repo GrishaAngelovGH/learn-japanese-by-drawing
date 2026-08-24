@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { type Stroke } from "@/lib/kanjivg"
 import { KanjiVGAttribution } from "./KanjiVGAttribution"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 type Props = {
   characters: string[]
@@ -41,7 +42,7 @@ function StrokeAnimation({
   }, [total, strokeDelayMs, run])
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-2">
       <svg
         viewBox="0 0 109 109"
         className="w-44 h-44"
@@ -132,15 +133,16 @@ export function StrokePreview({
   const strokes = activeChar ? strokesByChar[activeChar] ?? null : null
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-2">
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => setActiveIndex((i) => Math.max(0, i - 1))}
           disabled={safeIndex <= 0}
-          className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
+          aria-label="Prev character"
+          className="w-6 h-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          ‹ Prev
+          <ArrowLeft className="size-3" />
         </button>
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
           {characters.length === 0
@@ -153,9 +155,10 @@ export function StrokePreview({
             setActiveIndex((i) => Math.min(characters.length - 1, i + 1))
           }
           disabled={safeIndex >= characters.length - 1}
-          className="text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40"
+          aria-label="Next character"
+          className="w-6 h-6 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          Next ›
+          <ArrowRight className="size-3" />
         </button>
       </div>
 

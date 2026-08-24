@@ -417,7 +417,7 @@ describe("StrokeDrawing", () => {
 
     await screen.findByText("Character 1 of 2")
 
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+    fireEvent.click(screen.getByRole("button", { name: "Next character" }))
 
     expect(screen.getByText("Character 2 of 2")).toBeInTheDocument()
   })
@@ -432,10 +432,10 @@ describe("StrokeDrawing", () => {
 
     await screen.findByText("Character 1 of 2")
 
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+    fireEvent.click(screen.getByRole("button", { name: "Next character" }))
     expect(screen.getByText("Character 2 of 2")).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole("button", { name: "‹ Prev" }))
+    fireEvent.click(screen.getByRole("button", { name: "Prev character" }))
     expect(screen.getByText("Character 1 of 2")).toBeInTheDocument()
   })
 
@@ -448,7 +448,7 @@ describe("StrokeDrawing", () => {
     render(<StrokeDrawing characters={["一", "二"]} wordId="test-word" />)
 
     await screen.findByText("Character 1 of 2")
-    const prevButton = screen.getByRole("button", { name: "‹ Prev" })
+    const prevButton = screen.getByRole("button", { name: "Prev character" })
     expect(prevButton).toBeDisabled()
   })
 
@@ -478,7 +478,7 @@ describe("StrokeDrawing", () => {
     expect(screen.getByText("Stroke 2 / 2")).toBeInTheDocument()
 
     // Navigate to next character
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+    fireEvent.click(screen.getByRole("button", { name: "Next character" }))
 
     // Stroke progress should be reset
     expect(screen.getByText("Stroke 1 / 2")).toBeInTheDocument()
@@ -551,7 +551,7 @@ describe("StrokeDrawing", () => {
     canvas.getBoundingClientRect = () => mockRect as DOMRect
 
     // Navigate to last character
-    fireEvent.click(screen.getByRole("button", { name: "Next ›" }))
+    fireEvent.click(screen.getByRole("button", { name: "Next character" }))
 
     // Complete last character
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
