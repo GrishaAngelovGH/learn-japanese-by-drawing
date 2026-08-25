@@ -2,10 +2,18 @@ export type DiffOp = "equal" | "insert" | "delete"
 
 export type DiffSegment = { op: DiffOp; text: string }
 
-// Simple LCS-based char-level diff.
-export function diffChars(expected: string, actual: string): DiffSegment[] {
-  const a = [...expected]
-  const b = [...actual]
+/**
+ * LCS-based diff over any token sequence. `key` decides when two tokens are equal and
+ * `show` decides how a token is printed, so callers can diff sounds but display letters.
+ */
+export function diffTokens<T>(
+  expected: T[],
+  actual: T[],
+  key: (t: T) => string,
+  show: (t: T) => string
+): DiffSegment[] {
+  const a = expected.map(key)
+  const b = actual.map(key)
   const m = a.length
   const n = b.length
   const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0))
@@ -20,30 +28,35 @@ export function diffChars(expected: string, actual: string): DiffSegment[] {
   let j = 0
   while (i < m && j < n) {
     if (a[i] === b[j]) {
-      push(res, "equal", a[i])
+      push(res, "equal", show(expected[i]))
       i++
       j++
     } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      push(res, "delete", a[i])
+      push(res, "delete", show(expected[i]))
       i++
     } else {
-      push(res, "insert", b[j])
+      push(res, "insert", show(actual[j]))
       j++
     }
   }
   while (i < m) {
-    push(res, "delete", a[i])
+    push(res, "delete", show(expected[i]))
     i++
   }
   while (j < n) {
-    push(res, "insert", b[j])
+    push(res, "insert", show(actual[j]))
     j++
   }
   return res
 }
 
-function push(res: DiffSegment[], op: DiffOp, ch: string) {
+// Character-level diff between two strings.
+export function diffChars(expected: string, actual: string): DiffSegment[] {
+  return diffTokens([...expected], [...actual], (c) => c, (c) => c)
+}
+
+function push(res: DiffSegment[], op: DiffOp, text: string) {
   const last = res[res.length - 1]
-  if (last && last.op === op) last.text += ch
-  else res.push({ op, text: ch })
+  if (last && last.op === op) last.text += text
+  else res.push({ op, text })
 }

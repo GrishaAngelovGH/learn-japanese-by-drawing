@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react"
-import { vi } from "vitest"
+import { render, screen, fireEvent, act } from "@testing-library/react"
+import { vi, beforeEach, afterEach } from "vitest"
 import { useSearchParams, ReadonlyURLSearchParams } from "next/navigation"
 import PracticePage from "./page"
 import { speakJapanese } from "@/lib/speech"
@@ -143,5 +143,89 @@ describe("Practice Page", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }))
     expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+  })
+
+  describe("pronunciation diff", () => {
+    type Handlers = {
+      onresult: ((e: unknown) => void) | null
+      onerror: ((e: unknown) => void) | null
+      onend: (() => void) | null
+    }
+    const instances: Handlers[] = []
+    const rec = {
+      get current() {
+        return instances[instances.length - 1]
+      }
+    }
+    const win = window as unknown as Record<string, unknown>
+
+    class FakeRecognition {
+      onstart: (() => void) | null = null
+      onresult: ((e: unknown) => void) | null = null
+      onerror: ((e: unknown) => void) | null = null
+      onend: (() => void) | null = null
+      start = () => this.onstart?.()
+      stop = () => this.onend?.()
+      abort = () => { }
+      constructor() {
+        instances.push(this)
+      }
+    }
+
+    const say = (transcript: string) =>
+      act(() => {
+        rec.current.onresult!({ resultIndex: 0, results: { length: 1, 0: { 0: { transcript } } } })
+        rec.current.onend!()
+      })
+
+    beforeEach(() => {
+      instances.length = 0
+      win.SpeechRecognition = FakeRecognition
+    })
+    afterEach(() => {
+      delete win.SpeechRecognition
+    })
+
+    it("shows the diff in romaji, with no Japanese characters, after speaking", () => {
+      render(<PracticePage />)
+      fireEvent.click(screen.getByRole("button", { name: "Speak" }))
+      say("朝ごはん")
+
+      expect(screen.getByText("Expected")).toBeInTheDocument()
+      const diff = screen.getByText("You said").parentElement!.parentElement!
+      expect(diff.textContent).toContain("asagohan")
+      expect(diff.textContent).not.toMatch(/[\u3040-\u30ff\u4e00-\u9fff?]/)
+    })
+
+    it("highlights wrong sounds in romaji", () => {
+      render(<PracticePage />)
+      fireEvent.click(screen.getByRole("button", { name: "Speak" }))
+      say("みず")
+
+      expect(document.querySelector(".bg-red-200")).toBeInTheDocument()
+      expect(document.querySelector(".bg-green-200")?.textContent).toMatch(/mizu|miz|zu|mi/)
+    })
+
+    it("clears the diff when moving to the next word", () => {
+      render(<PracticePage />)
+      fireEvent.click(screen.getByRole("button", { name: "Speak" }))
+      say("みず")
+      expect(screen.getByText("You said")).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      expect(screen.queryByText("You said")).not.toBeInTheDocument()
+    })
+
+    it("shows a message when recognition fails", () => {
+      render(<PracticePage />)
+      fireEvent.click(screen.getByRole("button", { name: "Speak" }))
+      act(() => rec.current.onerror!({ error: "not-allowed" }))
+      expect(screen.getByText(/not-allowed/)).toBeInTheDocument()
+    })
+  })
+
+  it("shows an unsupported message when the browser has no speech recognition", () => {
+    render(<PracticePage />)
+    expect(screen.getByText(/isn't supported in this browser/)).toBeInTheDocument()
   })
 })

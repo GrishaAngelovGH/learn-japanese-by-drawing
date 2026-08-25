@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useSyncExternalStore } from "react"
 import { useSearchParams } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
 import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
+import { resolveKnownWords } from "@/lib/romaji"
 import useViewTransition from "@/hooks/useViewTransition"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import PronunciationDiff from "@/components/PronunciationDiff"
@@ -26,6 +27,12 @@ function PracticeContent() {
   const { isCompleted } = useCompletedWords()
 
   const speech = useSpeechRecognition("ja-JP")
+  // Browser support can only be known on the client; rendering it during SSR would cause a hydration mismatch.
+  const isClient = useSyncExternalStore(
+    () => () => { },
+    () => true,
+    () => false
+  )
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
@@ -34,18 +41,21 @@ function PracticeContent() {
     playNext()
     setCurrentIndex((prev) => Math.min(prev + 1, sessionCount - 1))
     setMode("idle")
+    speech.reset()
   }
 
   const handleRestart = () => {
     playRestart()
     setCurrentIndex(0)
     setMode("idle")
+    speech.reset()
   }
 
   const handlePrev = () => {
     playPrev()
     setCurrentIndex((prev) => Math.max(prev - 1, 0))
     setMode("idle")
+    speech.reset()
   }
 
   const handleBack = () => {
@@ -92,6 +102,13 @@ function PracticeContent() {
                 <StrokeDrawing characters={currentWord.characters} wordId={currentWord.id} />
               ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
+              ) : mode === "idle" && speech.status === "listening" ? (
+                <>
+                  <Soundwave />
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Listening…
+                  </p>
+                </>
               ) : mode === "idle" && isSpeaking ? (
                 <>
                   <Soundwave />
@@ -216,9 +233,23 @@ function PracticeContent() {
           </div>
 
           {speech.transcript && (
-            <div className="mt-4">
-              <PronunciationDiff expected={currentWord.kana} actual={speech.transcript} />
+            <div className="mt-4 pr-12">
+              <PronunciationDiff
+                expected={currentWord.kana}
+                actual={resolveKnownWords(speech.transcript, words)}
+              />
             </div>
+          )}
+
+          {isClient && !speech.isSupported && (
+            <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+              Speech recognition isn&apos;t supported in this browser. Try Chrome, Edge or Safari.
+            </p>
+          )}
+          {speech.status === "error" && speech.error && (
+            <p className="mt-4 text-center text-xs text-red-600 dark:text-red-400">
+              Couldn&apos;t hear you ({speech.error}). Check microphone permission and try again.
+            </p>
           )}
 
           {/* Play pronunciation button (bottom-right of card) */}
