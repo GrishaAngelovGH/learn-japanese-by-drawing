@@ -11,6 +11,8 @@ import words from "@/data/words"
 import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
 import useViewTransition from "@/hooks/useViewTransition"
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
+import PronunciationDiff from "@/components/PronunciationDiff"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
 
 function PracticeContent() {
@@ -22,6 +24,8 @@ function PracticeContent() {
   const currentWord = words[currentIndex]
 
   const { isCompleted } = useCompletedWords()
+
+  const speech = useSpeechRecognition("ja-JP")
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
@@ -176,6 +180,14 @@ function PracticeContent() {
             <Button
               variant="outline"
               size="sm"
+              onClick={speech.start}
+              className="gap-1.5 cursor-pointer"
+            >
+              Speak
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handlePrev}
               disabled={currentIndex <= 0}
               className="gap-1.5 cursor-pointer min-w-22 justify-center"
@@ -202,6 +214,12 @@ function PracticeContent() {
               )}
             </Button>
           </div>
+
+          {speech.transcript && (
+            <div className="mt-4">
+              <PronunciationDiff expected={currentWord.kana} actual={speech.transcript} />
+            </div>
+          )}
 
           {/* Play pronunciation button (bottom-right of card) */}
           <button
