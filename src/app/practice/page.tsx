@@ -1,6 +1,7 @@
 "use client"
 
-import { Suspense, useState, useSyncExternalStore } from "react"
+import { Suspense, useState, useSyncExternalStore, useEffect } from "react"
+import { toast } from "sonner"
 import { useSearchParams } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,13 @@ function PracticeContent() {
   )
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
+  const resolved = speech.transcript ? resolveKnownWords(speech.transcript, words) : ""
+  useEffect(() => {
+    if (resolved && resolved === currentWord.kana) {
+      const t = setTimeout(() => toast.success("Correct pronunciation!", { style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" } }), 500)
+      return () => clearTimeout(t)
+    }
+  }, [resolved, currentWord.kana])
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
 
   const handleNext = () => {

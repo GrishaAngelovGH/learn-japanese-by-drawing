@@ -6,6 +6,7 @@ import { Settings } from "lucide-react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SettingsModal } from "@/components/settings";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
               <Settings className="size-4" />
             </button>
             {children}
+            <Toaster position="bottom-center" />
             <SettingsModal
               isOpen={settingsOpen}
               onClose={() => setSettingsOpen(false)}
