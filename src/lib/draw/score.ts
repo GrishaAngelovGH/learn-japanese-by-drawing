@@ -37,8 +37,12 @@ export function scoreStroke(idealD: string, userPoints: Point[]): ScoreResult {
     return { score: 0, coverage: 0, precision: 0, judgeable: false }
   }
 
-  const idealPoints = sampleStroke(idealD, IDEAL_SAMPLES)
   const denseIdeal = sampleStroke(idealD, DENSE_SAMPLES)
+  // Use fewer ideal samples for shorter strokes so they don't require
+  // disproportionately many user points to reach full coverage.
+  const idealLength = pathLength(denseIdeal)
+  const idealSampleCount = Math.min(IDEAL_SAMPLES, Math.max(5, Math.round(idealLength)))
+  const idealPoints = sampleStroke(idealD, idealSampleCount)
   const denseUser = densify(userPoints, 1)
 
   // Coverage (ordered): walk ideal points in order with forward-only cursor j.
