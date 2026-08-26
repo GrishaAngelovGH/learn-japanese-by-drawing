@@ -4,6 +4,7 @@ import { useSearchParams, ReadonlyURLSearchParams } from "next/navigation"
 import PracticePage from "./page"
 import { speakJapanese } from "@/lib/speech"
 import { getStrokePaths } from "@/lib/kanjivg"
+import { mockPush } from "@/test/setup"
 
 vi.mock("@/lib/speech", () => ({
   speakJapanese: vi.fn()
@@ -23,8 +24,13 @@ describe("Practice Page", () => {
       ok: true,
       strokes: [{ strokeNumber: 1, d: "M1,1", type: "㇐" }]
     })
+    mockPush.mockClear()
     // Small session count so no test iterates the full production dictionary
     mockUseSearchParams.mockReturnValue(new URLSearchParams("?count=3") as ReadonlyURLSearchParams)
+  })
+
+  afterEach(() => {
+    mockPush.mockClear()
   })
 
   it("should render the component", () => {
@@ -227,5 +233,47 @@ describe("Practice Page", () => {
   it("shows an unsupported message when the browser has no speech recognition", () => {
     render(<PracticePage />)
     expect(screen.getByText(/isn't supported in this browser/)).toBeInTheDocument()
+  })
+
+  describe("word index persistence", () => {
+    it("updates the URL index when navigating", async () => {
+      render(<PracticePage />)
+
+      // Start at first word
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+
+      // Move to second word
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=1")
+
+      // Move to third word
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=2")
+    })
+
+    it("resumes on the index from the URL on refresh", async () => {
+      mockUseSearchParams.mockReturnValue(
+        new URLSearchParams("?count=3&index=2") as ReadonlyURLSearchParams
+      )
+
+      render(<PracticePage />)
+
+      expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+    })
+
+    it("resets the URL index to 0 on restart", async () => {
+      render(<PracticePage />)
+
+      // Navigate to last word so Restart button shows
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole("button", { name: "Restart" }))
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
+    })
   })
 })

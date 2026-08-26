@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useSyncExternalStore, useEffect, useRef } from "react"
 import { toast } from "sonner"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
@@ -20,10 +20,15 @@ import { useCompletedWords } from "@/hooks/useCompletedWords"
 
 function PracticeContent() {
   const { push } = useViewTransition()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const countParam = searchParams.get("count")
+  const indexParam = searchParams.get("index")
   const sessionCount = Math.min(countParam ? parseInt(countParam, 10) : words.length, words.length)
-  const [currentIndex, setCurrentIndex] = useState<number>(0)
+  const parsedIndex = indexParam ? parseInt(indexParam, 10) : 0
+  const [currentIndex, setCurrentIndex] = useState<number>(
+    Math.min(Math.max(parsedIndex, 0), sessionCount - 1)
+  )
   const currentWord = words[currentIndex]
 
   const {
@@ -56,9 +61,17 @@ function PracticeContent() {
   }, [resolved, currentWord.id, currentWord.kana, markPronounced])
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
 
+  const updateIndex = (next: number) => {
+    const clamped = Math.min(Math.max(next, 0), sessionCount - 1)
+    setCurrentIndex(clamped)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("index", String(clamped))
+    router.push(`?${params.toString()}`)
+  }
+
   const handleNext = () => {
     playNext()
-    setCurrentIndex((prev) => Math.min(prev + 1, sessionCount - 1))
+    updateIndex(currentIndex + 1)
     setMode("idle")
     speech.reset()
   }
@@ -66,13 +79,14 @@ function PracticeContent() {
   const handleRestart = () => {
     playRestart()
     setCurrentIndex(0)
+    updateIndex(0)
     setMode("idle")
     speech.reset()
   }
 
   const handlePrev = () => {
     playPrev()
-    setCurrentIndex((prev) => Math.max(prev - 1, 0))
+    updateIndex(currentIndex - 1)
     setMode("idle")
     speech.reset()
   }
