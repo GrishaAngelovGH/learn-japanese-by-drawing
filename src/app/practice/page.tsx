@@ -165,7 +165,10 @@ function PracticeContent() {
                 <StrokeDrawing
                   characters={currentWord.characters}
                   wordId={currentWord.id}
-                  onWordWritten={markWritten}
+                  onWordWritten={(wordId) => {
+                    markWritten(wordId)
+                    setMode("idle")
+                  }}
                 />
               ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
