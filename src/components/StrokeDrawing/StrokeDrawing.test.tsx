@@ -558,9 +558,10 @@ describe("StrokeDrawing", () => {
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    // Last character should show Word complete directly (not Character complete)
-    expect(screen.getByText("Word complete!")).toBeInTheDocument()
+    // Last character shows Character complete (word completion is tracked at word level)
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Next character" })).not.toBeInTheDocument()
+    expect(screen.queryByText("Word complete!")).not.toBeInTheDocument()
   })
 
   it("shows Word complete after completing last character", async () => {
@@ -585,9 +586,9 @@ describe("StrokeDrawing", () => {
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    // Single character word should go directly to Word complete
-    expect(screen.getByText("Word complete!")).toBeInTheDocument()
-    expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
+    // Single character word shows Character complete; word status is tracked at word level
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    expect(screen.queryByText("Word complete!")).not.toBeInTheDocument()
   })
 
   it("shows Word complete after completing all characters", async () => {
@@ -618,13 +619,13 @@ describe("StrokeDrawing", () => {
     // Click Next character button
     fireEvent.click(screen.getByRole("button", { name: "Next character" }))
 
-    // Complete second character (last character) - should auto go to Word complete
+    // Complete second character (last character)
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10, pointerId: 1 })
     fireEvent.pointerMove(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
     fireEvent.pointerUp(canvas, { clientX: 20, clientY: 20, pointerId: 1 })
 
-    expect(screen.getByText("Word complete!")).toBeInTheDocument()
-    expect(screen.getByText("Press Next to practice the next word.")).toBeInTheDocument()
+    expect(screen.getByText("Character complete!")).toBeInTheDocument()
+    expect(screen.queryByText("Word complete!")).not.toBeInTheDocument()
   })
 
   it("plays sound effects on stroke accept, reject, and completion", async () => {

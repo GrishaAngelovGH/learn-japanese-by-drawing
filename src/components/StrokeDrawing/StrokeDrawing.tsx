@@ -3,7 +3,6 @@
 import { useRef, useState } from "react"
 import { Undo2, Trash2, RotateCcw, ArrowLeft, ArrowRight } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
-import { useCompletedWords } from "@/hooks/useCompletedWords"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
 import { DEFAULT_THRESHOLD } from "@/lib/draw/config"
@@ -13,13 +12,14 @@ import { playStrokeSuccess, playStrokeFailure, playCharacterComplete, playWordCo
 type Props = {
   characters: string[]
   wordId: string
+  /** Called when the whole word has been drawn correctly. */
+  onWordWritten?: (wordId: string) => void
 }
 
 const ARROW_OFFSET = 4
 
-export function StrokeDrawing({ characters, wordId }: Props) {
+export function StrokeDrawing({ characters, wordId, onWordWritten }: Props) {
   const { strokesByChar, statusByChar } = useKanjiStrokes(characters)
-  const { markCompleted, triggerConfetti } = useCompletedWords()
   const [characterIndex, setCharacterIndex] = useState(0)
   const svgRef = useRef<SVGSVGElement>(null)
   const [strokeIndex, setStrokeIndex] = useState(0)
@@ -28,7 +28,6 @@ export function StrokeDrawing({ characters, wordId }: Props) {
   const [score, setScore] = useState(0)
   const [failedAttempts, setFailedAttempts] = useState(0)
   const [characterComplete, setCharacterComplete] = useState(false)
-  const [wordComplete, setWordComplete] = useState(false)
   const [showTryAgain, setShowTryAgain] = useState(false)
   const [showAcceptFlash, setShowAcceptFlash] = useState(false)
 
@@ -46,7 +45,6 @@ export function StrokeDrawing({ characters, wordId }: Props) {
     setCharacterIndex(0)
     setStrokeIndex(0)
     setTrace([])
-    setWordComplete(false)
   }
 
   const status = activeChar ? statusByChar[activeChar] : undefined
@@ -114,10 +112,8 @@ export function StrokeDrawing({ characters, wordId }: Props) {
         // Check if this is the last character of the word
         if (characterIndex === characters.length - 1) {
           setCharacterComplete(true)
-          setWordComplete(true)
           playWordComplete()
-          triggerConfetti()
-          markCompleted(wordId)
+          onWordWritten?.(wordId)
         } else {
           setCharacterComplete(true)
           playCharacterComplete()
@@ -162,7 +158,6 @@ export function StrokeDrawing({ characters, wordId }: Props) {
     setScore(0)
     setFailedAttempts(0)
     setCharacterComplete(false)
-    setWordComplete(false)
     setShowTryAgain(false)
   }
 
@@ -172,7 +167,6 @@ export function StrokeDrawing({ characters, wordId }: Props) {
     setScore(0)
     setFailedAttempts(0)
     setCharacterComplete(false)
-    setWordComplete(false)
     setShowTryAgain(false)
   }
 
@@ -180,11 +174,9 @@ export function StrokeDrawing({ characters, wordId }: Props) {
     if (characterIndex < characters.length - 1) {
       setCharacterIndex((prev) => prev + 1)
       resetCharacterProgress()
-    } else {
-      // Last character - mark word as complete
-      setWordComplete(true)
-      playWordComplete()
     }
+    // On the last character, the written status is marked when its final
+    // stroke is accepted (see handlePointerUp).
   }
 
   const handlePrevCharacter = () => {
@@ -205,16 +197,7 @@ export function StrokeDrawing({ characters, wordId }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-2">
-      {wordComplete ? (
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            Word complete!
-          </span>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Press Next to practice the next word.
-          </p>
-        </div>
-      ) : status === "loading" ? (
+      {status === "loading" ? (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">Loading…</p>
       ) : status === "error" ? (
         <p className="text-xs text-orange-600 dark:text-orange-400">

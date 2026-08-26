@@ -1,42 +1,104 @@
 /**
- * Tracks completed words in localStorage and triggers confetti on word completion.
+ * Tracks per-word practice progress in localStorage.
+ *
+ * A word is complete only after three actions are done:
+ *  - heard:  the user listened to the pronunciation (text-to-speech)
+ *  - written: the user drew the word correctly
+ *  - pronounced: the user spoke the word and it was recognized
  *
  * Key: `learn-japanese:completed-words`
- * Value: JSON array of word IDs that have been fully drawn.
+ * Value: JSON object mapping wordId -> { heard, written, pronounced }
  */
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+export type WordStatus = {
+  heard: boolean
+  written: boolean
+  pronounced: boolean
+}
 
 const STORAGE_KEY = "learn-japanese:completed-words"
 
-export function useCompletedWords() {
-  const [completed, setCompleted] = useState<Set<string>>(() => {
+const EMPTY_STATUS: WordStatus = { heard: false, written: false, pronounced: false }
+
+function loadStatuses(): Record<string, WordStatus> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      return new Set(JSON.parse(raw))
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {}
     }
+    const statuses: Record<string, WordStatus> = {}
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      const s = value as Partial<WordStatus> | null | undefined
+      statuses[String(id)] = { ...EMPTY_STATUS, ...(s ?? {}) }
+    }
+    return statuses
   } catch {
     // Silently ignore corrupt localStorage
+    return {}
   }
-  return new Set()
-})
+}
 
-  const isCompleted = useCallback((wordId: string) => completed.has(wordId), [
-    completed
-  ])
+function persist(statuses: Record<string, WordStatus>): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses))
+  } catch {
+    // Silently ignore if localStorage is unavailable
+  }
+}
 
-  const markCompleted = useCallback((wordId: string) => {
-    setCompleted((prev) => {
-      const next = new Set(prev)
-      next.add(wordId)
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]))
-      } catch {
-        // Silently ignore if localStorage is unavailable
-      }
-      return next
-    })
+export function useCompletedWords() {
+  // Defer reading localStorage until after hydration so the server and
+  // client render identical initial HTML (empty statuses). Reading
+  // localStorage during the hydration render would mismatch the server.
+  const [statuses, setStatuses] = useState<Record<string, WordStatus>>({})
+  // Seed persisted statuses after mount. Deferred via setTimeout so (a) the
+  // initial client render matches the server (empty statuses → no hydration
+  // mismatch on refresh) and (b) the setState is not synchronous within the
+  // effect body (avoids cascading-renders lint).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setStatuses(loadStatuses())
+    }, 0)
+    return () => clearTimeout(id)
   }, [])
+
+  const markAction = useCallback(
+    (wordId: string, action: keyof WordStatus) => {
+      setStatuses((prev) => {
+        const next = {
+          ...prev,
+          [wordId]: { ...EMPTY_STATUS, ...prev[wordId], [action]: true }
+        }
+        persist(next)
+        return next
+      })
+    },
+    []
+  )
+
+  const markHeard = useCallback((wordId: string) => markAction(wordId, "heard"), [markAction])
+  const markWritten = useCallback((wordId: string) => markAction(wordId, "written"), [markAction])
+  const markPronounced = useCallback((wordId: string) => markAction(wordId, "pronounced"), [markAction])
+
+  const isHeard = useCallback((wordId: string) => !!statuses[wordId]?.heard, [statuses])
+  const isWritten = useCallback((wordId: string) => !!statuses[wordId]?.written, [statuses])
+  const isPronounced = useCallback((wordId: string) => !!statuses[wordId]?.pronounced, [statuses])
+
+  const isCompleted = useCallback(
+    (wordId: string) => {
+      const s = statuses[wordId]
+      return Boolean(s?.heard && s?.written && s?.pronounced)
+    },
+    [statuses]
+  )
+
+  const completed = useMemo(
+    () => new Set(Object.keys(statuses).filter((id) => isCompleted(id))),
+    [statuses, isCompleted]
+  )
 
   const triggerConfetti = useCallback(() => {
     try {
@@ -69,5 +131,15 @@ export function useCompletedWords() {
     }
   }, [])
 
-  return { completed, isCompleted, markCompleted, triggerConfetti }
+  return {
+    completed,
+    isCompleted,
+    isHeard,
+    isWritten,
+    isPronounced,
+    markHeard,
+    markWritten,
+    markPronounced,
+    triggerConfetti
+  }
 }

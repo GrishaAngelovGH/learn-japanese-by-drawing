@@ -1,12 +1,13 @@
 "use client"
 
-import { Suspense, useState, useSyncExternalStore, useEffect } from "react"
+import { Suspense, useState, useSyncExternalStore, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { useSearchParams } from "next/navigation"
-import { ArrowLeft, ArrowRight, RotateCcw, Volume2, Check } from "lucide-react"
+import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StrokePreview } from "@/components/StrokePreview"
 import { StrokeDrawing } from "@/components/StrokeDrawing"
+import { PracticeStatus } from "@/components/PracticeStatus"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
 import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
@@ -25,7 +26,16 @@ function PracticeContent() {
   const [currentIndex, setCurrentIndex] = useState<number>(0)
   const currentWord = words[currentIndex]
 
-  const { isCompleted } = useCompletedWords()
+  const {
+    isCompleted,
+    isHeard,
+    isWritten,
+    isPronounced,
+    markHeard,
+    markWritten,
+    markPronounced,
+    triggerConfetti
+  } = useCompletedWords()
 
   const speech = useSpeechRecognition("ja-JP")
   // Browser support can only be known on the client; rendering it during SSR would cause a hydration mismatch.
@@ -39,10 +49,11 @@ function PracticeContent() {
   const resolved = speech.transcript ? resolveKnownWords(speech.transcript, words) : ""
   useEffect(() => {
     if (resolved && resolved === currentWord.kana) {
+      markPronounced(currentWord.id)
       const t = setTimeout(() => toast.success("Correct pronunciation!", { style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" } }), 500)
       return () => clearTimeout(t)
     }
-  }, [resolved, currentWord.kana])
+  }, [resolved, currentWord.id, currentWord.kana, markPronounced])
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
 
   const handleNext = () => {
@@ -76,10 +87,26 @@ function PracticeContent() {
     speakJapanese(
       currentWord.kana,
       "ja-JP",
-      () => setIsSpeaking(true),
+      () => {
+        setIsSpeaking(true)
+        markHeard(currentWord.id)
+      },
       () => setIsSpeaking(false)
     )
   }
+
+  // Celebrate when the last remaining action completes the word.
+  const prevCompleted = useRef(false)
+  useEffect(() => {
+    const done = isCompleted(currentWord.id)
+    if (done && !prevCompleted.current) {
+      triggerConfetti()
+      toast.success("Word complete!", {
+        style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" }
+      })
+    }
+    prevCompleted.current = done
+  }, [currentWord.id, isCompleted, triggerConfetti])
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
@@ -107,7 +134,11 @@ function PracticeContent() {
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-121.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
               {mode === "draw" ? (
-                <StrokeDrawing characters={currentWord.characters} wordId={currentWord.id} />
+                <StrokeDrawing
+                  characters={currentWord.characters}
+                  wordId={currentWord.id}
+                  onWordWritten={markWritten}
+                />
               ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
               ) : mode === "idle" && speech.status === "listening" ? (
@@ -150,12 +181,12 @@ function PracticeContent() {
                 >
                   {currentWord.text}
                 </h1>
-                {isCompleted(currentWord.id) && (
-                  <span className="flex items-center justify-center gap-1.5 rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-green-600 dark:text-green-400 font-bold text-sm mt-1">
-                    <Check className="size-5" />
-                    <span>Complete</span>
-                  </span>
-                )}
+                <PracticeStatus
+                  heard={isHeard(currentWord.id)}
+                  written={isWritten(currentWord.id)}
+                  pronounced={isPronounced(currentWord.id)}
+                  complete={isCompleted(currentWord.id)}
+                />
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
