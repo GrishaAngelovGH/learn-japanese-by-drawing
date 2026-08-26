@@ -133,7 +133,21 @@ function PracticeContent() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
             <div className="h-121.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
-              {mode === "draw" ? (
+              {isSpeaking ? (
+                <>
+                  <Soundwave />
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Speaking…
+                  </p>
+                </>
+              ) : speech.status === "listening" ? (
+                <>
+                  <Soundwave />
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Listening…
+                  </p>
+                </>
+              ) : mode === "draw" ? (
                 <StrokeDrawing
                   characters={currentWord.characters}
                   wordId={currentWord.id}
@@ -141,20 +155,6 @@ function PracticeContent() {
                 />
               ) : mode === "preview" ? (
                 <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
-              ) : mode === "idle" && speech.status === "listening" ? (
-                <>
-                  <Soundwave />
-                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Listening…
-                  </p>
-                </>
-              ) : mode === "idle" && isSpeaking ? (
-                <>
-                  <Soundwave />
-                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Speaking…
-                  </p>
-                </>
               ) : (
                 <>
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
