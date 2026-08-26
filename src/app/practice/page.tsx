@@ -109,17 +109,17 @@ function PracticeContent() {
     )
   }
 
-  // Celebrate when the last remaining action completes the word.
-  const prevCompleted = useRef(false)
+  // Celebrate only once per word — when it transitions to complete.
+  const celebrated = useRef(new Set<string>())
   useEffect(() => {
     const done = isCompleted(currentWord.id)
-    if (done && !prevCompleted.current) {
+    if (done && !celebrated.current.has(currentWord.id)) {
       triggerConfetti()
       toast.success("Word complete!", {
         style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" }
       })
+      celebrated.current.add(currentWord.id)
     }
-    prevCompleted.current = done
   }, [currentWord.id, isCompleted, triggerConfetti])
 
   return (
