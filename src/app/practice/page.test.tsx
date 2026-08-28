@@ -276,4 +276,52 @@ describe("Practice Page", () => {
       expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
     })
   })
+
+  describe("arrow key navigation", () => {
+    it("goes to previous word on ArrowLeft", async () => {
+      render(<PracticePage />)
+
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole("button", { name: "Next" }))
+      expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+
+      fireEvent.keyDown(window, { key: "ArrowLeft" })
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
+    })
+
+    it("goes to next word on ArrowRight", async () => {
+      render(<PracticePage />)
+
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+
+      fireEvent.keyDown(window, { key: "ArrowRight" })
+      expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=1")
+    })
+
+    it("restarts to first word on ArrowRight at last word", async () => {
+      render(<PracticePage />)
+
+      // Navigate to last word (index 2)
+      fireEvent.keyDown(window, { key: "ArrowRight" })
+      fireEvent.keyDown(window, { key: "ArrowRight" })
+      expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+
+      fireEvent.keyDown(window, { key: "ArrowRight" })
+      expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
+      expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
+    })
+
+    it("does not toggle preview or draw mode with arrow keys", async () => {
+      render(<PracticePage />)
+
+      expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+
+      fireEvent.keyDown(window, { key: "ArrowRight" })
+      expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
+      expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+    })
+  })
 })

@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useSyncExternalStore, useEffect } from "react"
+import { Suspense, useState, useSyncExternalStore, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
@@ -61,6 +61,7 @@ function PracticeContent() {
       return () => clearTimeout(t)
     }
   }, [resolved, currentWord.id, currentWord.kana, markPronounced])
+
   const [mode, setMode] = useState<"idle" | "preview" | "draw">("idle")
 
   const updateIndex = (next: number) => {
@@ -92,6 +93,33 @@ function PracticeContent() {
     setMode("idle")
     speech.reset()
   }
+
+  const handlersRef = useRef({ handlePrev, handleNext, handleRestart })
+  useEffect(() => {
+    handlersRef.current = { handlePrev, handleNext, handleRestart }
+  })
+
+  // Arrow key navigation between words (prev/next only, never preview/draw toggle)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") {
+        return
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault()
+        handlersRef.current.handlePrev()
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault()
+        if (currentIndex >= sessionCount - 1) {
+          handlersRef.current.handleRestart()
+        } else {
+          handlersRef.current.handleNext()
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [currentIndex, sessionCount])
 
   const handleBack = () => {
     playSwoosh()
