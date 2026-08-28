@@ -19,6 +19,7 @@ describe("useCompletedWords", () => {
     expect(result.current.isHeard("breakfast")).toBe(false)
     expect(result.current.isWritten("breakfast")).toBe(false)
     expect(result.current.isPronounced("breakfast")).toBe(false)
+    expect(result.current.isCelebrated("breakfast")).toBe(false)
   })
 
   it("marks each action independently and completes only when all three are done", () => {
@@ -41,8 +42,35 @@ describe("useCompletedWords", () => {
     expect(result.current.isCompleted("breakfast")).toBe(true)
 
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      breakfast: { heard: true, written: true, pronounced: true }
+      breakfast: { heard: true, written: true, pronounced: true, celebrated: false }
     })
+  })
+
+  it("celebrates only once per word across remounts", async () => {
+    const { result } = renderHook(() => useCompletedWords())
+
+    // Complete all three actions
+    act(() => {
+      result.current.markHeard("breakfast")
+      result.current.markWritten("breakfast")
+      result.current.markPronounced("breakfast")
+    })
+    expect(result.current.isCompleted("breakfast")).toBe(true)
+    expect(result.current.isCelebrated("breakfast")).toBe(false)
+
+    // Mark as celebrated
+    act(() => {
+      result.current.markCelebrated("breakfast")
+    })
+    expect(result.current.isCelebrated("breakfast")).toBe(true)
+
+    // Remount the hook; seed effect is deferred via setTimeout, so flush it.
+    const { result: result2 } = renderHook(() => useCompletedWords())
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    expect(result2.current.isCompleted("breakfast")).toBe(true)
+    expect(result2.current.isCelebrated("breakfast")).toBe(true)
   })
 
   it("persists across hook re-mounts", async () => {
@@ -70,7 +98,7 @@ describe("useCompletedWords", () => {
     })
 
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual({
-      tea: { heard: true, written: false, pronounced: false }
+      tea: { heard: true, written: false, pronounced: false, celebrated: false }
     })
   })
 
@@ -88,6 +116,7 @@ describe("useCompletedWords", () => {
     expect(result.current.isCompleted("rice")).toBe(false)
     expect(result.current.isWritten("rice")).toBe(true)
     expect(Array.from(result.current.completed)).toEqual(["breakfast"])
+    expect(result.current.isCelebrated("breakfast")).toBe(false)
   })
 
   it("handles corrupt localStorage gracefully", () => {
@@ -96,5 +125,6 @@ describe("useCompletedWords", () => {
     const { result } = renderHook(() => useCompletedWords())
     expect(result.current.completed).toEqual(new Set())
     expect(result.current.isCompleted("breakfast")).toBe(false)
+    expect(result.current.isCelebrated("breakfast")).toBe(false)
   })
 })

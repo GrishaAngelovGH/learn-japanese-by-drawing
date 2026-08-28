@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useSyncExternalStore, useEffect, useRef } from "react"
+import { Suspense, useState, useSyncExternalStore, useEffect } from "react"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
@@ -36,9 +36,11 @@ function PracticeContent() {
     isHeard,
     isWritten,
     isPronounced,
+    isCelebrated,
     markHeard,
     markWritten,
     markPronounced,
+    markCelebrated,
     triggerConfetti
   } = useCompletedWords()
 
@@ -110,17 +112,17 @@ function PracticeContent() {
   }
 
   // Celebrate only once per word — when it transitions to complete.
-  const celebrated = useRef(new Set<string>())
+  // Persisted in localStorage so the celebration doesn't repeat on refresh.
   useEffect(() => {
     const done = isCompleted(currentWord.id)
-    if (done && !celebrated.current.has(currentWord.id)) {
+    if (done && !isCelebrated(currentWord.id)) {
       triggerConfetti()
       toast.success("Word complete!", {
         style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" }
       })
-      celebrated.current.add(currentWord.id)
+      markCelebrated(currentWord.id)
     }
-  }, [currentWord.id, isCompleted, triggerConfetti])
+  }, [currentWord.id, isCompleted, isCelebrated, markCelebrated, triggerConfetti])
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">

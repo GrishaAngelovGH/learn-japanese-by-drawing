@@ -16,11 +16,13 @@ export type WordStatus = {
   heard: boolean
   written: boolean
   pronounced: boolean
+  /** Whether the completion celebration has already been shown for this word. */
+  celebrated: boolean
 }
 
 const STORAGE_KEY = "learn-japanese:completed-words"
 
-const EMPTY_STATUS: WordStatus = { heard: false, written: false, pronounced: false }
+const EMPTY_STATUS: WordStatus = { heard: false, written: false, pronounced: false, celebrated: false }
 
 function loadStatuses(): Record<string, WordStatus> {
   try {
@@ -85,10 +87,12 @@ export function useCompletedWords() {
   const markHeard = useCallback((wordId: string) => markAction(wordId, "heard"), [markAction])
   const markWritten = useCallback((wordId: string) => markAction(wordId, "written"), [markAction])
   const markPronounced = useCallback((wordId: string) => markAction(wordId, "pronounced"), [markAction])
+  const markCelebrated = useCallback((wordId: string) => markAction(wordId, "celebrated"), [markAction])
 
   const isHeard = useCallback((wordId: string) => !!statuses[wordId]?.heard, [statuses])
   const isWritten = useCallback((wordId: string) => !!statuses[wordId]?.written, [statuses])
   const isPronounced = useCallback((wordId: string) => !!statuses[wordId]?.pronounced, [statuses])
+  const isCelebrated = useCallback((wordId: string) => !!statuses[wordId]?.celebrated, [statuses])
 
   const isCompleted = useCallback(
     (wordId: string) => {
@@ -109,9 +113,11 @@ export function useCompletedWords() {
     isHeard,
     isWritten,
     isPronounced,
+    isCelebrated,
     markHeard,
     markWritten,
     markPronounced,
+    markCelebrated,
     triggerConfetti
   }
 }
