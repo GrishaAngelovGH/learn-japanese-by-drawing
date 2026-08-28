@@ -5,4 +5,6 @@ export type Word = {
   romaji: string
   meaning: string
   characters: string[]
+  /** Optional per-character meanings, parallel to `characters`. */
+  characterMeanings?: string[]
 }

@@ -7,7 +7,8 @@ const words: Word[] = [
     kana: "あさごはん",
     romaji: "asagohan",
     meaning: "Breakfast",
-    characters: ["朝", "ご", "飯"]
+    characters: ["朝", "ご", "飯"],
+    characterMeanings: ["Morning", "Honorific prefix", "Rice / meal"]
   },
   {
     id: "rice",
@@ -15,7 +16,8 @@ const words: Word[] = [
     kana: "ごはん",
     romaji: "gohan",
     meaning: "Rice (cooked)",
-    characters: ["ご", "は", "ん"]
+    characters: ["ご", "は", "ん"],
+    characterMeanings: ["Honorific prefix", "Grammatical particle", "Sound ending"]
   },
   {
     id: "water",
@@ -23,7 +25,8 @@ const words: Word[] = [
     kana: "みず",
     romaji: "mizu",
     meaning: "Water",
-    characters: ["み", "ず"]
+    characters: ["み", "ず"],
+    characterMeanings: ["Phonetic", "Phonetic"]
   },
   {
     id: "tea",
@@ -31,7 +34,8 @@ const words: Word[] = [
     kana: "ちゃ",
     romaji: "cha",
     meaning: "Tea",
-    characters: ["ち", "ゃ"]
+    characters: ["ち", "ゃ"],
+    characterMeanings: ["Phonetic", "Small kana modifier"]
   },
   {
     id: "coffee",
@@ -39,7 +43,8 @@ const words: Word[] = [
     kana: "こーひー",
     romaji: "koohii",
     meaning: "Coffee",
-    characters: ["コ", "ー", "ヒ", "ー"]
+    characters: ["コ", "ー", "ヒ", "ー"],
+    characterMeanings: ["Phonetic", "Long vowel mark", "Phonetic", "Long vowel mark"]
   },
   {
     id: "bread",
@@ -47,7 +52,8 @@ const words: Word[] = [
     kana: "パン",
     romaji: "pan",
     meaning: "Bread",
-    characters: ["パ", "ン"]
+    characters: ["パ", "ン"],
+    characterMeanings: ["Phonetic", "Phonetic"]
   },
   {
     id: "egg",
@@ -55,7 +61,8 @@ const words: Word[] = [
     kana: "たまご",
     romaji: "tamago",
     meaning: "Egg",
-    characters: ["た", "ま", "ご"]
+    characters: ["た", "ま", "ご"],
+    characterMeanings: ["Phonetic", "Phonetic", "Phonetic"]
   },
   {
     id: "milk",
@@ -63,7 +70,8 @@ const words: Word[] = [
     kana: "ぎゅうにゅう",
     romaji: "gyuunyuu",
     meaning: "Milk",
-    characters: ["ぎ", "ゅ", "う", "に", "ゅ", "う"]
+    characters: ["ぎ", "ゅ", "う", "に", "ゅ", "う"],
+    characterMeanings: ["Phonetic", "Small kana modifier", "Phonetic", "Phonetic", "Small kana modifier", "Phonetic"]
   },
   {
     id: "apple",
@@ -71,7 +79,8 @@ const words: Word[] = [
     kana: "りんご",
     romaji: "ringo",
     meaning: "Apple",
-    characters: ["り", "ん", "ご"]
+    characters: ["り", "ん", "ご"],
+    characterMeanings: ["Phonetic", "Phonetic", "Phonetic"]
   },
   {
     id: "banana",
@@ -79,7 +88,8 @@ const words: Word[] = [
     kana: "バナナ",
     romaji: "banana",
     meaning: "Banana",
-    characters: ["バ", "ナ", "ナ"]
+    characters: ["バ", "ナ", "ナ"],
+    characterMeanings: ["Phonetic", "Phonetic", "Phonetic"]
   },
   {
     id: "fish",
@@ -87,7 +97,8 @@ const words: Word[] = [
     kana: "さかな",
     romaji: "sakana",
     meaning: "Fish",
-    characters: ["さ", "か", "な"]
+    characters: ["さ", "か", "な"],
+    characterMeanings: ["Phonetic", "Phonetic", "Phonetic"]
   }
 ]
 

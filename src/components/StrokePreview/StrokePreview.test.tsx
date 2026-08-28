@@ -97,4 +97,31 @@ expect(ink).toHaveLength(2)
     expect(await findByText("Character 2 of 2")).toBeInTheDocument()
     expect(await findByText("Complete")).toBeInTheDocument()
   })
+
+  it("renders character meaning and updates on character navigation", async () => {
+    mockGetStrokePaths.mockImplementation((char) =>
+      Promise.resolve({
+        ok: true,
+        strokes: char === "朝" ? [stroke("M1,1")] : [stroke("M2,2")]
+      })
+    )
+    const { findByText, findByRole } = render(
+      <StrokePreview
+        characters={["朝", "飯"]}
+        characterMeanings={["Morning", "Rice / meal"]}
+        strokeDelayMs={10}
+      />
+    )
+
+    expect(await findByText("Character 1 of 2")).toBeInTheDocument()
+    expect(await findByText("Character meaning")).toBeInTheDocument()
+    expect(await findByText("Morning")).toBeInTheDocument()
+
+    const next = await findByRole("button", { name: "Next character" })
+    await act(async () => {
+      fireEvent.click(next)
+    })
+
+    expect(await findByText("Rice / meal")).toBeInTheDocument()
+  })
 })

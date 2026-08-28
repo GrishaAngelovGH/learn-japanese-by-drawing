@@ -12,13 +12,15 @@ import { playStrokeSuccess, playStrokeFailure, playCharacterComplete, playWordCo
 type Props = {
   characters: string[]
   wordId: string
+  /** Optional per-character meanings, parallel to `characters`. */
+  characterMeanings?: string[]
   /** Called when the whole word has been drawn correctly. */
   onWordWritten?: (wordId: string) => void
 }
 
 const ARROW_OFFSET = 4
 
-export function StrokeDrawing({ characters, wordId, onWordWritten }: Props) {
+export function StrokeDrawing({ characters, wordId, characterMeanings, onWordWritten }: Props) {
   const { strokesByChar, statusByChar } = useKanjiStrokes(characters)
   const [characterIndex, setCharacterIndex] = useState(0)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -475,7 +477,22 @@ export function StrokeDrawing({ characters, wordId, onWordWritten }: Props) {
         </>
       )}
 
-      <div className="max-w-55 text-center">
+      {characterMeanings && characterMeanings.length > 0 && (
+        <div className="mt-2 space-y-1">
+          <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
+            Character meaning
+          </span>
+          <div className="flex items-center justify-center gap-2">
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+            >
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{activeChar}</span>
+              <span>{characterMeanings[safeCharIndex] ?? ""}</span>
+            </span>
+          </div>
+        </div>
+      )}
+      <div className="max-w-55 text-center mb-2">
         <KanjiVGAttribution />
       </div>
     </div>

@@ -155,7 +155,7 @@ function PracticeContent() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
       <main className="w-full max-w-2xl">
-        <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm">
+        <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm min-h-[640px]">
           {/* Practice Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-700 pb-6 mb-6">
             <Button
@@ -176,7 +176,7 @@ function PracticeContent() {
           {/* Two-column layout: canvas left, word info right */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
-            <div className="h-121.5 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
+            <div className="h-[540px] rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
               {isSpeaking ? (
                 <>
                   <Soundwave />
@@ -195,13 +195,18 @@ function PracticeContent() {
                 <StrokeDrawing
                   characters={currentWord.characters}
                   wordId={currentWord.id}
+                  characterMeanings={currentWord.characterMeanings}
                   onWordWritten={(wordId) => {
                     markWritten(wordId)
                     setMode("idle")
                   }}
                 />
               ) : mode === "preview" ? (
-                <StrokePreview characters={currentWord.characters} strokeDelayMs={700} />
+                <StrokePreview
+                  characters={currentWord.characters}
+                  characterMeanings={currentWord.characterMeanings}
+                  strokeDelayMs={700}
+                />
               ) : (
                 <>
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

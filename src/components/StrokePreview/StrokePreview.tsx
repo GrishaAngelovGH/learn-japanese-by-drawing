@@ -8,15 +8,21 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 
 type Props = {
   characters: string[]
+  /** Optional per-character meanings, parallel to `characters`. */
+  characterMeanings?: string[]
   strokeDelayMs?: number
 }
 
 function StrokeAnimation({
   strokes,
-  strokeDelayMs
+  strokeDelayMs,
+  character,
+  meaning
 }: {
   strokes: Stroke[]
   strokeDelayMs: number
+  character?: string
+  meaning?: string
 }) {
   const [visibleCount, setVisibleCount] = useState(0)
   // Bumped on Replay so the animated paths remount at "undrawn" instead of
@@ -104,6 +110,22 @@ function StrokeAnimation({
         </span>
       </div>
 
+      {meaning && (
+        <div className="space-y-1">
+          <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
+            Character meaning
+          </span>
+          <div className="flex items-center justify-center gap-2">
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+            >
+              <span className="font-bold text-zinc-900 dark:text-zinc-100">{character}</span>
+              <span>{meaning}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
       <KanjiVGAttribution />
     </div>
   )
@@ -111,6 +133,7 @@ function StrokeAnimation({
 
 export function StrokePreview({
   characters,
+  characterMeanings,
   strokeDelayMs = 700
 }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -169,11 +192,30 @@ export function StrokePreview({
           key={`${safeIndex}-${activeChar}`}
           strokes={strokes}
           strokeDelayMs={strokeDelayMs}
+          character={activeChar}
+          meaning={characterMeanings?.[safeIndex]}
         />
       ) : (
-        <div className="w-44 h-44 flex items-center justify-center text-6xl text-zinc-400 dark:text-zinc-500">
-          {activeChar ?? ""}
-        </div>
+        <>
+          <div className="w-44 h-44 flex items-center justify-center text-6xl text-zinc-400 dark:text-zinc-500">
+            {activeChar ?? ""}
+          </div>
+          {characterMeanings?.[safeIndex] && (
+            <div className="space-y-1">
+              <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
+                Character meaning
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400"
+                >
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">{activeChar}</span>
+                  <span>{characterMeanings[safeIndex]}</span>
+                </span>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <p className="max-w-xs text-center text-xs text-zinc-500 dark:text-zinc-400">
