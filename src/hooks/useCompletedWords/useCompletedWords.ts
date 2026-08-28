@@ -10,6 +10,7 @@
  * Value: JSON object mapping wordId -> { heard, written, pronounced }
  */
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useConfetti } from "@/hooks/useConfetti"
 
 export type WordStatus = {
   heard: boolean
@@ -50,6 +51,8 @@ function persist(statuses: Record<string, WordStatus>): void {
 }
 
 export function useCompletedWords() {
+  const { triggerConfetti } = useConfetti()
+
   // Defer reading localStorage until after hydration so the server and
   // client render identical initial HTML (empty statuses). Reading
   // localStorage during the hydration render would mismatch the server.
@@ -99,37 +102,6 @@ export function useCompletedWords() {
     () => new Set(Object.keys(statuses).filter((id) => isCompleted(id))),
     [statuses, isCompleted]
   )
-
-  const triggerConfetti = useCallback(() => {
-    try {
-      const canvas = document.createElement("canvas")
-      canvas.style.position = "fixed"
-      canvas.style.top = "0"
-      canvas.style.left = "0"
-      canvas.style.width = "100%"
-      canvas.style.height = "100%"
-      canvas.style.pointerEvents = "none"
-      canvas.style.zIndex = "9999"
-      document.body.appendChild(canvas)
-
-      import("canvas-confetti").then((confetti) => {
-        confetti.default({
-          particleCount: 150,
-          spread: 100,
-          origin: { y: 0.6 },
-          colors: ["#f97316", "#fbbf24", "#fcd34d", "#f59e0b"],
-          disableForReducedMotion: true,
-          zIndex: 9999
-        })
-
-        setTimeout(() => {
-          document.body.removeChild(canvas)
-        }, 3000)
-      })
-    } catch {
-      // Silently fail if confetti doesn't load
-    }
-  }, [])
 
   return {
     completed,
