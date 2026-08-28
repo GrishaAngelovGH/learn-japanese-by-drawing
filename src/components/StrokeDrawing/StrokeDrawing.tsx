@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Undo2, Trash2, RotateCcw, ArrowLeft, ArrowRight } from "lucide-react"
+import { Undo2, Trash2, RotateCcw, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react"
 import { useKanjiStrokes } from "@/hooks/useKanjiStrokes"
 import { startDirection, toViewBoxPoint, type Point } from "@/lib/draw/geometry"
 import { scoreStroke } from "@/lib/draw/score"
@@ -434,18 +434,22 @@ export function StrokeDrawing({ characters, wordId, onWordWritten }: Props) {
               </div>
               {currentStroke && (
                 <div className="relative flex flex-col items-center gap-1">
-                  {/* Overlaid in the gap above the score, so it takes no layout space. */}
-                  <div className="absolute -top-4 inset-x-0 h-4 flex items-center justify-center pointer-events-none">
-                    {showTryAgain ? (
-                      <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                        Try again ({failedAttempts})
-                      </span>
-                    ) : showAcceptFlash ? (
-                      <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                        Great!
-                      </span>
-                    ) : null}
-                  </div>
+                  {/* Overlaid above the score bar so it takes no layout space. */}
+                  {showTryAgain ? (
+                    <span
+                      className="absolute -top-8 flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-800/60 px-2.5 py-1 text-xs font-medium text-orange-700 dark:text-orange-300 shadow-sm"
+                    >
+                      <AlertTriangle className="size-3" />
+                      Try again ({failedAttempts})
+                    </span>
+                  ) : showAcceptFlash ? (
+                    <span
+                      className="absolute -top-8 flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-900/40 border border-green-200 dark:border-green-800/60 px-2.5 py-1 text-xs font-medium text-green-700 dark:text-green-400 shadow-sm"
+                    >
+                      <RotateCcw className="size-3" />
+                      Great!
+                    </span>
+                  ) : null}
                   <span
                     className="text-3xl font-mono tabular-nums text-zinc-900 dark:text-zinc-100"
                     aria-live="polite"
