@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from "@testing-library/react"
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react"
 import { vi, beforeEach, afterEach } from "vitest"
 import { useSearchParams, ReadonlyURLSearchParams } from "next/navigation"
 import PracticePage from "./page"
@@ -31,6 +31,7 @@ describe("Practice Page", () => {
 
   afterEach(() => {
     mockPush.mockClear()
+    localStorage.removeItem("learn-japanese:completed-words")
   })
 
   it("should render the component", () => {
@@ -261,6 +262,25 @@ describe("Practice Page", () => {
       render(<PracticePage />)
 
       expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+    })
+
+    it("resumes at the first incomplete word on reload when no index is given", async () => {
+      // Complete the first two words (breakfast, rice); water is next
+      localStorage.setItem(
+        "learn-japanese:completed-words",
+        JSON.stringify({
+          breakfast: { heard: true, written: true, pronounced: true, celebrated: false },
+          rice: { heard: true, written: true, pronounced: true, celebrated: false },
+        })
+      )
+
+      render(<PracticePage />)
+
+      // Statuses load asynchronously after mount, so we start on the first
+      // word and resume at the first incomplete one once they are ready.
+      await waitFor(() =>
+        expect(screen.getByRole("heading", { level: 1, name: "みず" })).toBeInTheDocument()
+      )
     })
 
     it("resets the URL index to 0 on restart", async () => {

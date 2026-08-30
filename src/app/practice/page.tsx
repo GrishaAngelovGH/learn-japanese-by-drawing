@@ -34,8 +34,14 @@ function PracticeContent() {
   const indexParam = searchParams.get("index")
   const sessionCount = Math.min(countParam ? parseInt(countParam, 10) : words.length, words.length)
   const parsedIndex = indexParam ? parseInt(indexParam, 10) : 0
+  // When there is no explicit index in the URL (a fresh start / reload), we
+  // resume at the first incomplete word once persisted statuses load. Until
+  // then we start at the first word to avoid a hydration mismatch.
+  const hasIndexParam = indexParam !== null
   const [currentIndex, setCurrentIndex] = useState<number>(
-    Math.min(Math.max(parsedIndex, 0), sessionCount - 1)
+    hasIndexParam
+      ? Math.min(Math.max(parsedIndex, 0), sessionCount - 1)
+      : 0
   )
   const currentWord = words[currentIndex]
 
@@ -163,6 +169,27 @@ function PracticeContent() {
       markCelebrated(currentWord.id)
     }
   }, [currentWord.id, isCompleted, isCelebrated, markCelebrated, triggerConfetti])
+
+  // On a fresh reload (no explicit index in the URL), resume at the first
+  // incomplete word instead of always starting at the first word. Persisted
+  // statuses load asynchronously after mount, so this effect re-runs once they
+  // are available and jumps forward if the current word is already done.
+  //
+  // `updateIndex` and `currentIndex` are intentionally not dependencies:
+  // `updateIndex` is recreated every render (including it would loop), and we
+  // only need to re-run when completion status or the session changes. On a
+  // fresh reload `currentIndex` is still the initial value when statuses load,
+  // so reading it without a dep is safe here.
+  useEffect(() => {
+    if (hasIndexParam) return
+    const firstIncomplete = words.findIndex((w) => !isCompleted(w.id))
+    const target = firstIncomplete === -1 ? Math.max(sessionCount - 1, 0) : firstIncomplete
+    if (target !== currentIndex) {
+      setCurrentIndex(target)
+      updateIndex(target)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasIndexParam, isCompleted, sessionCount, words])
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
