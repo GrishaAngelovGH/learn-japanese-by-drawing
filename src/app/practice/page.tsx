@@ -75,8 +75,6 @@ function PracticeContent() {
   useEffect(() => {
     if (resolved && resolved === currentWord.kana) {
       markPronounced(currentWord.id)
-      const t = setTimeout(() => toast.success("Correct pronunciation!", { style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" } }), 500)
-      return () => clearTimeout(t)
     }
   }, [resolved, currentWord.id, currentWord.kana, markPronounced])
 
@@ -174,22 +172,20 @@ function PracticeContent() {
   // incomplete word instead of always starting at the first word. Persisted
   // statuses load asynchronously after mount, so this effect re-runs once they
   // are available and jumps forward if the current word is already done.
-  //
-  // `updateIndex` and `currentIndex` are intentionally not dependencies:
-  // `updateIndex` is recreated every render (including it would loop), and we
-  // only need to re-run when completion status or the session changes. On a
-  // fresh reload `currentIndex` is still the initial value when statuses load,
-  // so reading it without a dep is safe here.
   useEffect(() => {
     if (hasIndexParam) return
     const firstIncomplete = words.findIndex((w) => !isCompleted(w.id))
     const target = firstIncomplete === -1 ? Math.max(sessionCount - 1, 0) : firstIncomplete
     if (target !== currentIndex) {
-      setCurrentIndex(target)
-      updateIndex(target)
+      const id = setTimeout(() => {
+        setCurrentIndex(target)
+        const params = new URLSearchParams(searchParams.toString())
+        params.set("index", String(target))
+        router.push(`?${params.toString()}`)
+      }, 0)
+      return () => clearTimeout(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasIndexParam, isCompleted, sessionCount, words])
+  }, [hasIndexParam, isCompleted, sessionCount, currentIndex, searchParams, router])
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">

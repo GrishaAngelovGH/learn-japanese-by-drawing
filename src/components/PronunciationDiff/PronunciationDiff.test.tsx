@@ -21,4 +21,16 @@ describe("PronunciationDiff", () => {
     expect(container.textContent).not.toMatch(/[一-鿿]/)
     expect(container.querySelector(".bg-green-200")?.textContent).toBe("?")
   })
+
+  it("shows Correct when pronunciation matches expected", () => {
+    render(<PronunciationDiff expected="みず" actual="みず" />)
+    expect(screen.getByText("Correct")).toBeInTheDocument()
+    expect(screen.queryByText("Incorrect")).not.toBeInTheDocument()
+  })
+
+  it("shows Incorrect when pronunciation differs from expected", () => {
+    render(<PronunciationDiff expected="みず" actual="みな" />)
+    expect(screen.getByText("Incorrect")).toBeInTheDocument()
+    expect(screen.queryByText("Correct")).not.toBeInTheDocument()
+  })
 })

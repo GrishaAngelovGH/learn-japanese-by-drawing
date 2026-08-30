@@ -14,6 +14,12 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/"
 }))
 
+// Mock canvas-confetti so jsdom (no Canvas API) doesn't throw on animation frames
+vi.mock("canvas-confetti", () => ({
+  __esModule: true,
+  default: vi.fn()
+}))
+
 // Mock document.startViewTransition for testing
 Object.defineProperty(document, "startViewTransition", {
   value: vi.fn((callback: () => void) => callback()),
