@@ -18,6 +18,14 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import PronunciationDiff from "@/components/PronunciationDiff"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
 
+/** Words grouped by their romaji pronunciation, so we can flag homophones. */
+const homophoneMap = new Map<string, typeof words>()
+for (const w of words) {
+  const group = homophoneMap.get(w.romaji) ?? []
+  group.push(w)
+  homophoneMap.set(w.romaji, group)
+}
+
 function PracticeContent() {
   const { push } = useViewTransition()
   const router = useRouter()
@@ -30,6 +38,10 @@ function PracticeContent() {
     Math.min(Math.max(parsedIndex, 0), sessionCount - 1)
   )
   const currentWord = words[currentIndex]
+
+  const homophones = (homophoneMap.get(currentWord.romaji) ?? []).filter(
+    (w) => w.id !== currentWord.id
+  )
 
   const {
     isCompleted,
@@ -155,7 +167,7 @@ function PracticeContent() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
       <main className="w-full max-w-2xl">
-        <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm min-h-[640px]">
+        <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm min-h-160">
           {/* Practice Header */}
           <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-700 pb-6 mb-6">
             <Button
@@ -176,7 +188,7 @@ function PracticeContent() {
           {/* Two-column layout: canvas left, word info right */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left Column: Drawing Canvas / Soundwave / Stroke preview */}
-            <div className="h-[540px] rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
+            <div className="h-135 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/20 flex flex-col items-center justify-center text-center p-6 space-y-2">
               {isSpeaking ? (
                 <>
                   <Soundwave />
@@ -264,6 +276,12 @@ function PracticeContent() {
                   {currentWord.meaning}
                 </p>
               </div>
+              <p
+                className="text-xs leading-4 h-8 line-clamp-2 text-zinc-400 dark:text-zinc-500 mt-1 italic"
+                aria-hidden={homophones.length === 0}
+              >
+                {homophones.length > 0 ? `Homophone — also pronounced “${currentWord.romaji}” as ${homophones.map((h) => h.meaning).join(", ")}` : null}
+              </p>
             </div>
           </div>
 

@@ -2,6 +2,31 @@
  * Pronunciation check: turn what the user said into romaji and diff it against the
  * word they were asked to say, so the learner compares English letters, not kana/kanji.
  *
+ * Key Japanese Writing Concepts:
+ *  - Kanji (漢字): Logographic Chinese characters representing meanings and roots
+ *                  (e.g. 朝 "morning", 友 "friend", 食 "eat").
+ *  - Hiragana (ひらがな): Phonetic syllabary used for native words, verb endings, and particles
+ *                        (e.g. あさ, ごはん, たべる).
+ *  - Katakana (カタカナ): Phonetic syllabary used primarily for foreign loanwords and names
+ *                        (e.g. コーヒー "coffee", パン "bread").
+ *  - Okurigana (送り仮名): Kana characters written after a kanji root to indicate inflections
+ *                         or simplify words for learners (e.g. the hiragana だち in 友だち,
+ *                         or べる in 食べる).
+ *  - Romaji (ローマ字): Latin alphabet representation of Japanese sounds (e.g. "tomodachi"),
+ *                      allowing beginners to compare pronunciation phonetically.
+ *
+ * Key Phonetic & Morphological Concepts:
+ *  - Mora (モーラ / 拍): The fundamental rhythmic timing unit of Japanese speech (each
+ *                       syllable, small tsu, or "n" occupies one mora of equal duration).
+ *  - Yōon (拗音): Contracted/glided sounds combining a base kana with a small kana
+ *                (e.g. き + ゃ -> きゃ "kya", ぎ + ゅ -> ぎゅ "gyu", ち + ゃ -> ちゃ "cha").
+ *  - Sokuon (促音): The small っ ("tsu"), which represents a brief stop/pause and doubles
+ *                  the following consonant (gemination, e.g. がっこう "gakkoo", まっちゃ "matcha").
+ *  - Chōon (長音): Prolonged vowel sounds held for two morae, written with "ー" in katakana
+ *                 (コーヒー "koohii") or vowel elongations in hiragana (おう -> "oo" in 今日 "kyoo").
+ *  - Dakuten & Handakuten (濁点・半濁点): Voicing marks ("゛" and "゜") that convert unvoiced
+ *                                        sounds into voiced equivalents (か "ka" -> が "ga", は "ha" -> ば "ba" / ぱ "pa").
+ *
  * Workflow (practice page -> this file -> diff -> UI):
  *
  *  1. Speak     The "Speak" button calls useSpeechRecognition("ja-JP"), which wraps the
@@ -30,8 +55,13 @@
  *  6. Render    The diff is printed using each mora's `romaji`: missing/wrong sounds are red
  *               on the "Expected" side and extra/wrong sounds are green on "You said".
  *
- * Limits: unresolved kanji show as "?". When adding a word that uses a new kanji, add its
- * reading to KANJI_READINGS. Recognition quality itself depends on the browser.
+ * Limits & Okurigana:
+ *  - Drawing vs. Speech mismatch: Beginner words in the drawing dictionary often use hiragana
+ *    okurigana (e.g. 友だち, 昼ご飯) to make strokes easier to draw, but speech recognizers
+ *    frequently transcribe standard all-kanji compounds (e.g. 友達, 昼飯).
+ *  - When adding words with okurigana or alternate kanji spellings, always add the all-kanji
+ *    variant to KANJI_READINGS so speech recognition resolves smoothly.
+ *  - Unresolved kanji show as "?". Recognition quality itself depends on the browser.
  */
 
 export type Mora = {
@@ -201,13 +231,35 @@ export function toRomaji(input: string): string {
 export const KANJI_READINGS: Record<string, string> = {
   朝: "あさ",
   飯: "はん",
+  御: "ご",
   水: "みず",
   茶: "ちゃ",
   卵: "たまご",
   玉子: "たまご",
   魚: "さかな",
   牛乳: "ぎゅうにゅう",
-  林檎: "りんご"
+  日: "ひ",
+  晩: "ばん",
+  馬: "うま",
+  林檎: "りんご",
+  友達: "ともだち",
+  友: "とも",
+  達: "だち",
+  子ども: "こども",
+  昼ごはん: "ひるごはん",
+  晩ごはん: "ばんごはん",
+  晩御飯: "ばんごはん",
+  // かく: the recognizer often picks another kanji for the same sound.
+  書: "かく",
+  描く: "かく",
+  欠く: "かく",
+  掻く: "かく",
+  画: "かく",
+  角: "かく",
+  核: "かく",
+  各: "かく",
+  格: "かく",
+  酒: "さけ"
 }
 
 export function resolveKnownWords(
@@ -215,12 +267,16 @@ export function resolveKnownWords(
   lexicon: ReadonlyArray<{ text: string; kana: string }>
 ): string {
   let result = text
-  const sorted = [...lexicon].sort((a, b) => b.text.length - a.text.length)
-  for (const w of sorted) {
-    if (w.text !== w.kana) result = result.split(w.text).join(w.kana)
+  const entries: Array<{ text: string; kana: string }> = []
+  for (const w of lexicon) {
+    if (w.text !== w.kana) entries.push({ text: w.text, kana: w.kana })
   }
   for (const [kanji, reading] of Object.entries(KANJI_READINGS)) {
-    result = result.split(kanji).join(reading)
+    entries.push({ text: kanji, kana: reading })
+  }
+  entries.sort((a, b) => b.text.length - a.text.length)
+  for (const entry of entries) {
+    result = result.split(entry.text).join(entry.kana)
   }
   return result
 }

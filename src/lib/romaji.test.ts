@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { resolveKnownWords, toRomaji } from "./romaji"
+import { resolveKnownWords, toMoras, toRomaji } from "./romaji"
 import words from "@/data/words"
 
 describe("toRomaji", () => {
@@ -46,5 +46,18 @@ describe("resolveKnownWords", () => {
   it("resolves partly-kanji results", () => {
     expect(toRomaji(resolveKnownWords("朝ごはん", words))).toBe("asagohan")
     expect(toRomaji(resolveKnownWords("あさご飯", words))).toBe("asagohan")
+    expect(toRomaji(resolveKnownWords("友達", words))).toBe("tomodachi")
+  })
+})
+describe("honorific 御 from speech recognition", () => {
+  it("resolves 晩御飯 to the same sounds as 晩ご飯", () => {
+    const r = resolveKnownWords("晩御飯", words)
+    expect(toMoras(r).map((m) => m.romaji).join(" ")).toBe("ba n go ha n")
+  })
+})
+
+describe("かく spoken for 書く", () => {
+  it.each(["書く", "書", "描く", "欠く", "画", "角", "核", "各", "格"])("resolves %s to かく", (text) => {
+    expect(resolveKnownWords(text, words)).toBe("かく")
   })
 })
