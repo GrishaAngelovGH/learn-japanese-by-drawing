@@ -1,12 +1,44 @@
 import { render, screen, fireEvent } from "@testing-library/react"
 import { vi } from "vitest"
 import { SettingsModal } from "./SettingsModal"
+import { SettingsProvider } from "@/contexts/SettingsContext"
 
 vi.mock("next-themes", () => ({
   useTheme: vi.fn(),
 }))
+vi.mock("@/contexts/SettingsContext", () => ({
+  useSettings: vi.fn(),
+  SettingsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
 
 const { useTheme } = await import("next-themes")
+const { useSettings } = await import("@/contexts/SettingsContext")
+
+const setup = (
+  theme: "light" | "dark" = "light",
+  backgroundImage = "none",
+  setBackgroundImage = vi.fn(),
+  onClose = vi.fn()
+) => {
+  vi.mocked(useTheme).mockReturnValue({
+    theme,
+    setTheme: vi.fn(),
+    themes: ["light", "dark"],
+    resolvedTheme: theme,
+  })
+  vi.mocked(useSettings).mockReturnValue({
+    backgroundImage,
+    setBackgroundImage,
+  })
+
+  render(
+    <SettingsProvider>
+      <SettingsModal isOpen={true} onClose={onClose} />
+    </SettingsProvider>
+  )
+
+  return { setBackgroundImage, onClose }
+}
 
 describe("SettingsModal", () => {
   beforeEach(() => {
@@ -14,27 +46,14 @@ describe("SettingsModal", () => {
   })
 
   it("renders when isOpen is true", () => {
-    vi.mocked(useTheme).mockReturnValue({
-      theme: "light",
-      setTheme: vi.fn(),
-      themes: ["light", "dark"],
-      resolvedTheme: "light",
-    })
-
-    render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
+    setup()
 
     expect(screen.getByText("Settings")).toBeInTheDocument()
     expect(screen.getByText("Dark Mode")).toBeInTheDocument()
+    expect(screen.getByText("Background Image")).toBeInTheDocument()
   })
 
   it("does not render when isOpen is false", () => {
-    vi.mocked(useTheme).mockReturnValue({
-      theme: "light",
-      setTheme: vi.fn(),
-      themes: ["light", "dark"],
-      resolvedTheme: "light",
-    })
-
     const { container } = render(<SettingsModal isOpen={false} onClose={vi.fn()} />)
 
     expect(container.firstChild).toBeNull()
@@ -47,6 +66,10 @@ describe("SettingsModal", () => {
       setTheme,
       themes: ["light", "dark"],
       resolvedTheme: "light",
+    })
+    vi.mocked(useSettings).mockReturnValue({
+      backgroundImage: "none",
+      setBackgroundImage: vi.fn(),
     })
 
     render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
@@ -65,6 +88,10 @@ describe("SettingsModal", () => {
       themes: ["light", "dark"],
       resolvedTheme: "dark",
     })
+    vi.mocked(useSettings).mockReturnValue({
+      backgroundImage: "none",
+      setBackgroundImage: vi.fn(),
+    })
 
     render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
 
@@ -74,16 +101,46 @@ describe("SettingsModal", () => {
     expect(setTheme).toHaveBeenCalledWith("light")
   })
 
+  it("calls setBackgroundImage with a pexels url when enabling background while disabled", () => {
+    const { setBackgroundImage } = setup("light", "none")
+
+    const toggle = screen.getByRole("button", { name: /background image/i })
+    fireEvent.click(toggle)
+
+    expect(setBackgroundImage).toHaveBeenCalledWith(expect.stringContaining("pexels.com"))
+  })
+
+  it("calls setBackgroundImage with 'none' when disabling background while enabled", () => {
+    const url = "https://images.pexels.com/example.jpg"
+    const { setBackgroundImage } = setup("light", url)
+
+    const toggle = screen.getByRole("button", { name: /background image/i })
+    fireEvent.click(toggle)
+
+    expect(setBackgroundImage).toHaveBeenCalledWith("none")
+  })
+
+  it("updates background image when a button option is clicked", () => {
+    const { setBackgroundImage } = setup("light", "https://images.pexels.com/example.jpg")
+    const newValue = "https://images.pexels.com/videos/20666366/japan-kyoto-kyoto-station-public-20666366.jpeg?auto=compress&cs=tinysrgb&w=1600&h=900&fit=crop"
+
+    const button = screen.getByText("Kyoto")
+    fireEvent.click(button)
+
+    expect(setBackgroundImage).toHaveBeenCalledWith(newValue)
+  })
+
+  it("shows a preview image when background is enabled", () => {
+    const url = "https://images.pexels.com/example.jpg"
+    setup("light", url)
+
+    expect(screen.getByRole("button", { name: /background image/i })).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByAltText("")).toHaveAttribute("src", url)
+  })
+
   it("calls onClose when close button is clicked", () => {
     const onClose = vi.fn()
-    vi.mocked(useTheme).mockReturnValue({
-      theme: "light",
-      setTheme: vi.fn(),
-      themes: ["light", "dark"],
-      resolvedTheme: "light",
-    })
-
-    render(<SettingsModal isOpen={true} onClose={onClose} />)
+    setup("light", "none", vi.fn(), onClose)
 
     const closeButton = screen.getByLabelText("Close settings")
     fireEvent.click(closeButton)
@@ -93,14 +150,7 @@ describe("SettingsModal", () => {
 
   it("calls onClose when ESC key is pressed", () => {
     const onClose = vi.fn()
-    vi.mocked(useTheme).mockReturnValue({
-      theme: "light",
-      setTheme: vi.fn(),
-      themes: ["light", "dark"],
-      resolvedTheme: "light",
-    })
-
-    render(<SettingsModal isOpen={true} onClose={onClose} />)
+    setup("light", "none", vi.fn(), onClose)
 
     fireEvent.keyDown(document, { key: "Escape" })
 
@@ -109,14 +159,7 @@ describe("SettingsModal", () => {
 
   it("does not call onClose when other keys are pressed", () => {
     const onClose = vi.fn()
-    vi.mocked(useTheme).mockReturnValue({
-      theme: "light",
-      setTheme: vi.fn(),
-      themes: ["light", "dark"],
-      resolvedTheme: "light",
-    })
-
-    render(<SettingsModal isOpen={true} onClose={onClose} />)
+    setup("light", "none", vi.fn(), onClose)
 
     fireEvent.keyDown(document, { key: "Enter" })
 

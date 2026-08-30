@@ -127,6 +127,16 @@
     font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
+  body.has-background-image {
+    background-color: transparent !important;
+  }
+
+  /* Make only page-level backgrounds transparent, not cards */
+  body.has-background-image .bg-zinc-50,
+  body.has-background-image .dark\:bg-zinc-900 {
+    background-color: transparent !important;
+  }
+
   html {
     font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
