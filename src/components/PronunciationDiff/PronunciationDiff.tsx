@@ -50,11 +50,18 @@ export function PronunciationDiff({ expected, actual }: Props) {
     (m) => m.romaji
   )
 
-  // Pronunciation is correct when every mora matched (no insertions or deletions).
-  const isCorrect = segs.length > 0 && segs.every((s) => s.op === "equal")
+  // Pronunciation is correct when every mora matched (no insertions or deletions),
+  // but only meaningful when both sides have content.
+  const hasContent = expected.length > 0 && actual.length > 0
+  const isCorrect =
+    hasContent && segs.length > 0 && segs.every((s) => s.op === "equal")
 
   return (
-    <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+    <div
+      className={`rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden transition-opacity duration-300 ${
+        hasContent ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
+    >
       {/* Panels */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
         <div className="rounded-l-lg border-r border-r-zinc-200 dark:border-r-zinc-800/60 p-3 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition-all duration-200">
@@ -79,7 +86,7 @@ export function PronunciationDiff({ expected, actual }: Props) {
             {renderSide(segs, "actual")}
           </div>
         </div>
-        {isCorrect ? (
+        {hasContent && (isCorrect ? (
           <div className="rounded-r-lg p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/60 flex flex-col items-center justify-center text-center transition-all duration-200">
             <span className="text-green-600 dark:text-green-400 font-bold text-lg">
               ✓
@@ -97,7 +104,7 @@ export function PronunciationDiff({ expected, actual }: Props) {
               Incorrect
             </span>
           </div>
-        )}
+        ))}
       </div>
     </div>
   )

@@ -218,9 +218,10 @@ describe("Practice Page", () => {
       fireEvent.click(screen.getByRole("button", { name: "Speak" }))
       say("みず")
       expect(screen.getByText("You said")).toBeInTheDocument()
+      expect(screen.getByText("mizu")).toBeInTheDocument()
 
       fireEvent.click(screen.getByRole("button", { name: "Next" }))
-      expect(screen.queryByText("You said")).not.toBeInTheDocument()
+      expect(screen.queryByText("mizu")).not.toBeInTheDocument()
     })
 
     it("shows a message when recognition fails", () => {

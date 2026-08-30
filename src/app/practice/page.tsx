@@ -364,6 +364,7 @@ function PracticeContent() {
             </Button>
           </div>
 
+          {/* Pronunciation diff (shown only after speaking) */}
           {speech.transcript && (
             <div className="mt-4 pr-12">
               <PronunciationDiff
