@@ -1,11 +1,12 @@
 "use client"
 
-import { X, Image as ImageIcon, Sun, Moon } from "lucide-react"
+import { X, Image as ImageIcon, Sun, Moon, Trash2 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useEffect } from "react"
 
 import { useSettings } from "@/contexts/SettingsContext"
 import { BACKGROUND_OPTIONS } from "@/data/background-images"
+import { useCompletedWords } from "@/hooks/useCompletedWords"
 
 type SettingsModalProps = {
   isOpen: boolean
@@ -17,6 +18,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const isDark = theme === "dark"
   const { backgroundImage, setBackgroundImage } = useSettings()
   const isBackgroundEnabled = backgroundImage !== "none"
+  const { clearAll } = useCompletedWords()
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -124,6 +126,19 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             )}
           </div>
+
+          {/* Clear Progress */}
+          <button
+            onClick={() => {
+              clearAll()
+              onClose()
+              window.location.reload()
+            }}
+            className="w-full flex items-center justify-center gap-2 text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors px-3 py-2 rounded-lg border border-red-200 dark:border-red-800"
+          >
+            <Trash2 className="size-4" />
+            Clear all progress
+          </button>
         </div>
       </div>
     </div>

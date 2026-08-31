@@ -107,6 +107,11 @@ export function useCompletedWords() {
     [statuses, isCompleted]
   )
 
+  const clearAll = useCallback(() => {
+    setStatuses({})
+    persist({})
+  }, [])
+
   return {
     completed,
     isCompleted,
@@ -118,6 +123,7 @@ export function useCompletedWords() {
     markWritten,
     markPronounced,
     markCelebrated,
-    triggerConfetti
+    triggerConfetti,
+    clearAll
   }
 }
