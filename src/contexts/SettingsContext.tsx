@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { createContext, useContext, useState, ReactNode } from "react"
 
 export type Settings = {
   backgroundImage: string
@@ -40,13 +40,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    setSettings(loadSettings())
-  }, [])
+  const [settings, setSettings] = useState<Settings>(() => loadSettings())
 
   const setBackgroundImage = (value: string) => {
     setSettings((prev) => {

@@ -1,6 +1,7 @@
 "use client"
 
 import { X, Image as ImageIcon, Sun, Moon, Trash2 } from "lucide-react"
+import Image from "next/image"
 import { useTheme } from "next-themes"
 import { useEffect } from "react"
 
@@ -117,10 +118,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     Preview:
                   </span>
-                  <img
+                  <Image
                     src={backgroundImage}
                     alt=""
                     className="h-12 w-16 rounded-lg object-cover object-center border border-zinc-200 dark:border-zinc-700 shadow-sm"
+                    unoptimized
                   />
                 </div>
               </div>
