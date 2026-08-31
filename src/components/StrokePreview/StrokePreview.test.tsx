@@ -98,30 +98,68 @@ expect(ink).toHaveLength(2)
     expect(await findByText("Complete")).toBeInTheDocument()
   })
 
-  it("renders character meaning and updates on character navigation", async () => {
+  it("calls onComplete after the last character finishes", async () => {
+    mockGetStrokePaths.mockResolvedValue({
+      ok: true,
+      strokes: [stroke("M1,1")]
+    })
+    const onComplete = vi.fn()
+    const { findByText } = render(
+      <StrokePreview characters={["一"]} strokeDelayMs={10} onComplete={onComplete} />
+    )
+
+    expect(await findByText("Complete")).toBeInTheDocument()
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50))
+    })
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not call onComplete for an intermediate character", async () => {
     mockGetStrokePaths.mockImplementation((char) =>
       Promise.resolve({
         ok: true,
-        strokes: char === "朝" ? [stroke("M1,1")] : [stroke("M2,2")]
+        strokes: char === "一" ? [stroke("M1,1")] : [stroke("M2,2")]
       })
     )
-    const { findByText, findByRole } = render(
-      <StrokePreview
-        characters={["朝", "飯"]}
-        characterMeanings={["Morning", "Rice / meal"]}
-        strokeDelayMs={10}
-      />
+    const onComplete = vi.fn()
+    const { findByText } = render(
+      <StrokePreview characters={["一", "二"]} strokeDelayMs={10} onComplete={onComplete} />
     )
 
-    expect(await findByText("Character 1 of 2")).toBeInTheDocument()
-    expect(await findByText("Character meaning")).toBeInTheDocument()
-    expect(await findByText("Morning")).toBeInTheDocument()
+    expect(await findByText("Complete")).toBeInTheDocument()
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50))
+    })
+    expect(onComplete).not.toHaveBeenCalled()
+  })
+
+  it("calls onComplete only after the final character finishes", async () => {
+    mockGetStrokePaths.mockImplementation((char) =>
+      Promise.resolve({
+        ok: true,
+        strokes: char === "一" ? [stroke("M1,1")] : [stroke("M2,2")]
+      })
+    )
+    const onComplete = vi.fn()
+    const { findByText, findByRole } = render(
+      <StrokePreview characters={["一", "二"]} strokeDelayMs={10} onComplete={onComplete} />
+    )
+
+    expect(await findByText("Complete")).toBeInTheDocument()
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50))
+    })
+    expect(onComplete).not.toHaveBeenCalled()
 
     const next = await findByRole("button", { name: "Next character" })
     await act(async () => {
       fireEvent.click(next)
     })
-
-    expect(await findByText("Rice / meal")).toBeInTheDocument()
+    expect(await findByText("Complete")).toBeInTheDocument()
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 50))
+    })
+    expect(onComplete).toHaveBeenCalledTimes(1)
   })
 })

@@ -11,18 +11,22 @@ type Props = {
   /** Optional per-character meanings, parallel to `characters`. */
   characterMeanings?: string[]
   strokeDelayMs?: number
+  /** Called when the full stroke-order preview has finished playing for all characters. */
+  onComplete?: () => void
 }
 
 function StrokeAnimation({
   strokes,
   strokeDelayMs,
   character,
-  meaning
+  meaning,
+  onComplete
 }: {
   strokes: Stroke[]
   strokeDelayMs: number
   character?: string
   meaning?: string
+  onComplete?: () => void
 }) {
   const [visibleCount, setVisibleCount] = useState(0)
   // Bumped on Replay so the animated paths remount at "undrawn" instead of
@@ -46,6 +50,12 @@ function StrokeAnimation({
       clearInterval(id)
     }
   }, [total, strokeDelayMs, run])
+
+  useEffect(() => {
+    if (done && onComplete) {
+      onComplete()
+    }
+  }, [done, onComplete])
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -134,7 +144,8 @@ function StrokeAnimation({
 export function StrokePreview({
   characters,
   characterMeanings,
-  strokeDelayMs = 700
+  strokeDelayMs = 700,
+  onComplete
 }: Props) {
   const [activeIndex, setActiveIndex] = useState(0)
   const { strokesByChar } = useKanjiStrokes(characters)
@@ -154,6 +165,14 @@ export function StrokePreview({
   }
 
   const strokes = activeChar ? strokesByChar[activeChar] ?? null : null
+
+  const handleCharComplete = () => {
+    if (characters.length === 0) return
+    if (safeIndex === characters.length - 1) {
+      onComplete?.()
+    }
+    // Otherwise let user navigate manually with arrows
+  }
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -194,6 +213,7 @@ export function StrokePreview({
           strokeDelayMs={strokeDelayMs}
           character={activeChar}
           meaning={characterMeanings?.[safeIndex]}
+          onComplete={handleCharComplete}
         />
       ) : (
         <>

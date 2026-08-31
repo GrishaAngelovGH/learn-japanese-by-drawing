@@ -241,6 +241,7 @@ function PracticeContent() {
                   characters={currentWord.characters}
                   characterMeanings={currentWord.characterMeanings}
                   strokeDelayMs={700}
+                  onComplete={() => setMode("idle")}
                 />
               ) : (
                 <>
