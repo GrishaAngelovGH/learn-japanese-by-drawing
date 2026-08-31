@@ -309,59 +309,63 @@ function PracticeContent() {
           </div>
 
           {/* Preview stroke order button (below the canvas) */}
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMode((prev) => (prev === "preview" ? "idle" : "preview"))}
-              className="gap-1.5 cursor-pointer"
-            >
-              {mode === "preview" ? "Hide stroke order" : "Preview stroke order"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setMode((prev) => (prev === "draw" ? "idle" : "draw"))}
-              className="gap-1.5 cursor-pointer"
-            >
-              {mode === "draw" ? "Stop drawing" : "Learn to draw"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={speech.start}
-              className="gap-1.5 cursor-pointer"
-            >
-              Speak
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrev}
-              disabled={currentIndex <= 0}
-              className="gap-1.5 cursor-pointer min-w-22 justify-center"
-            >
-              <ArrowLeft className="size-4" />
-              Prev
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={currentIndex >= sessionCount - 1 ? handleRestart : handleNext}
-              className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
-            >
-              {currentIndex >= sessionCount - 1 ? (
-                <>
-                  Restart
-                  <RotateCcw className="size-4" />
-                </>
-              ) : (
-                <>
-                  Next
-                  <ArrowRight className="size-4" />
-                </>
-              )}
-            </Button>
+          <div className="mt-6 flex flex-wrap justify-between gap-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMode((prev) => (prev === "preview" ? "idle" : "preview"))}
+                className="gap-1.5 cursor-pointer"
+              >
+                {mode === "preview" ? "Hide stroke order" : "Preview stroke order"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMode((prev) => (prev === "draw" ? "idle" : "draw"))}
+                className="gap-1.5 cursor-pointer"
+              >
+                {mode === "draw" ? "Stop drawing" : "Learn to draw"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={speech.start}
+                className="gap-1.5 cursor-pointer"
+              >
+                Speak
+              </Button>
+            </div>
+            <div className="flex gap-2 pr-12">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrev}
+                disabled={currentIndex <= 0}
+                className="gap-1.5 cursor-pointer min-w-22 justify-center"
+              >
+                <ArrowLeft className="size-4" />
+                Prev
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={currentIndex >= sessionCount - 1 ? handleRestart : handleNext}
+                className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
+              >
+                {currentIndex >= sessionCount - 1 ? (
+                  <>
+                    Restart
+                    <RotateCcw className="size-4" />
+                  </>
+                ) : (
+                  <>
+                    Next
+                    <ArrowRight className="size-4" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Pronunciation diff (shown only after speaking) */}
