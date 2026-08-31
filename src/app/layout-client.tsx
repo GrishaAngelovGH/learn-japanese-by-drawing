@@ -33,7 +33,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
         <SettingsProvider>
           <Background />
           <ThemeProvider>
-            <div className="relative min-h-full z-10">
+            <div className="relative min-h-full z-10 cursor-default">
               <button
                 onClick={() => setSettingsOpen(true)}
                 aria-label="Settings"

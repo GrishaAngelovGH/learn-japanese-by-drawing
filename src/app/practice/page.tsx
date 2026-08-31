@@ -393,7 +393,7 @@ function PracticeContent() {
           <button
             onClick={handleSpeak}
             aria-label="Listen to pronunciation"
-            className={`absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${isSpeaking
+            className={`absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 cursor-pointer ${isSpeaking
               ? "bg-orange-500 border border-orange-400 text-white shadow-lg shadow-orange-200"
               : "bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-600 shadow-sm"
               }`}
