@@ -284,7 +284,7 @@ function PracticeContent() {
             <div className="space-y-4">
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
-                  Japanese Character
+                  Japanese Word
                 </span>
                 <h1
                   className={`font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1 whitespace-nowrap ${currentWord.text.length > 5
@@ -303,7 +303,7 @@ function PracticeContent() {
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
-                  Pronunciation
+                  Japanese Pronunciation
                 </span>
                 <div className="text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-medium md:text-base mt-1">
                   {currentWord.kana}
@@ -311,7 +311,7 @@ function PracticeContent() {
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
-                  Romaji
+                  Romaji (Latin letters)
                 </span>
                 <div className="text-sm text-zinc-600 dark:text-zinc-400 md:text-base mt-1">
                   {currentWord.romaji}
@@ -319,7 +319,7 @@ function PracticeContent() {
               </div>
               <div>
                 <span className="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium">
-                  Meaning
+                  Meaning in English
                 </span>
                 <p className="text-sm font-medium text-orange-600 dark:text-orange-400 md:text-base mt-1">
                   {currentWord.meaning}

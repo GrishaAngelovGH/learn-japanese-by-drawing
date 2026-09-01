@@ -79,7 +79,7 @@ exports[`Practice Page > should render the component 1`] = `
               <span
                 class="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium"
               >
-                Japanese Character
+                Japanese Word
               </span>
               <h1
                 class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100 mt-1 whitespace-nowrap text-5xl md:text-6xl"
@@ -194,7 +194,7 @@ exports[`Practice Page > should render the component 1`] = `
               <span
                 class="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium"
               >
-                Pronunciation
+                Japanese Pronunciation
               </span>
               <div
                 class="text-sm uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-medium md:text-base mt-1"
@@ -206,7 +206,7 @@ exports[`Practice Page > should render the component 1`] = `
               <span
                 class="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium"
               >
-                Romaji
+                Romaji (Latin letters)
               </span>
               <div
                 class="text-sm text-zinc-600 dark:text-zinc-400 md:text-base mt-1"
@@ -218,7 +218,7 @@ exports[`Practice Page > should render the component 1`] = `
               <span
                 class="text-xs uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-medium"
               >
-                Meaning
+                Meaning in English
               </span>
               <p
                 class="text-sm font-medium text-orange-600 dark:text-orange-400 md:text-base mt-1"
