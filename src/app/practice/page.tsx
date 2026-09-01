@@ -71,6 +71,9 @@ function PracticeContent() {
   )
 
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false)
+  // Timer that auto-hides the stroke-order preview 2s after it finishes playing,
+  // giving the learner a moment to see the completed character.
+  const hidePreviewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resolved = speech.transcript ? resolveKnownWords(speech.transcript, words) : ""
   useEffect(() => {
     if (resolved && resolved === currentWord.kana) {
@@ -101,6 +104,18 @@ function PracticeContent() {
     updateIndex(0)
     setMode("idle")
     speech.reset()
+  }
+
+  // Auto-hide the stroke-order preview a short while after it finishes playing.
+  const handleStrokePreviewComplete = () => {
+    // Clear any pending hide so a restart/navigate doesn't trigger a late hide.
+    if (hidePreviewTimerRef.current) {
+      clearTimeout(hidePreviewTimerRef.current)
+    }
+    hidePreviewTimerRef.current = setTimeout(() => {
+      hidePreviewTimerRef.current = null
+      setMode("idle")
+    }, 2000)
   }
 
   const handlePrev = () => {
@@ -136,6 +151,16 @@ function PracticeContent() {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [currentIndex, sessionCount])
+
+  // Clear any pending auto-hide timer when the page unmounts.
+  useEffect(() => {
+    return () => {
+      if (hidePreviewTimerRef.current) {
+        clearTimeout(hidePreviewTimerRef.current)
+        hidePreviewTimerRef.current = null
+      }
+    }
+  }, [])
 
   const handleBack = () => {
     playSwoosh()
@@ -241,7 +266,7 @@ function PracticeContent() {
                   characters={currentWord.characters}
                   characterMeanings={currentWord.characterMeanings}
                   strokeDelayMs={700}
-                  onComplete={() => setMode("idle")}
+                  onComplete={handleStrokePreviewComplete}
                 />
               ) : (
                 <>
