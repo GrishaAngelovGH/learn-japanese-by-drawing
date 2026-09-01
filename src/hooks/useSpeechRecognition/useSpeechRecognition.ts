@@ -73,6 +73,11 @@ export function useSpeechRecognition(lang = "ja-JP"): UseSpeechRecognitionResult
       setStatus("unsupported")
       return
     }
+    // Don't start a new recognition while one is already listening.
+    // Browsers generally allow only one active recognition at a time, and
+    // starting a duplicate can throw or produce conflicting results.
+    if (status === "listening") return
+
     setError(null)
     finalRef.current = ""
     setTranscript("")
@@ -109,7 +114,7 @@ export function useSpeechRecognition(lang = "ja-JP"): UseSpeechRecognitionResult
       setStatus("error")
       setError("start-failed")
     }
-  }, [ctor, lang])
+  }, [ctor, lang, status])
 
   useEffect(() => {
     return () => {

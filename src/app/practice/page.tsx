@@ -357,6 +357,7 @@ function PracticeContent() {
                 variant="outline"
                 size="sm"
                 onClick={speech.start}
+                disabled={speech.status === "listening"}
                 className="gap-1.5 cursor-pointer"
               >
                 Speak

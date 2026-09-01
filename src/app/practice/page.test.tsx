@@ -230,6 +230,17 @@ describe("Practice Page", () => {
       act(() => rec.current.onerror!({ error: "not-allowed" }))
       expect(screen.getByText(/not-allowed/)).toBeInTheDocument()
     })
+
+    it("disables the Speak button while listening", () => {
+      render(<PracticePage />)
+
+      const speakButton = screen.getByRole("button", { name: "Speak" })
+      expect(speakButton).not.toBeDisabled()
+
+      fireEvent.click(speakButton)
+
+      expect(speakButton).toBeDisabled()
+    })
   })
 
   it("shows an unsupported message when the browser has no speech recognition", () => {

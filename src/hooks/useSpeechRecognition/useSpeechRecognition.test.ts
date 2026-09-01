@@ -72,6 +72,18 @@ describe("useSpeechRecognition", () => {
     expect(result.current.error).toBe("no-speech")
   })
 
+  it("ignores start while already listening", () => {
+    const { result } = renderHook(() => useSpeechRecognition())
+    act(() => result.current.start())
+    expect(result.current.status).toBe("listening")
+
+    const countBefore = instances.length
+    act(() => result.current.start())
+
+    expect(instances.length).toBe(countBefore)
+    expect(result.current.status).toBe("listening")
+  })
+
   it("reports unsupported when no ctor", () => {
     delete (window as unknown as Record<string, unknown>).SpeechRecognition
     const { result } = renderHook(() => useSpeechRecognition())
