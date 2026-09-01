@@ -121,6 +121,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   <Image
                     src={backgroundImage}
                     alt=""
+                    width={64}
+                    height={48}
                     className="h-12 w-16 rounded-lg object-cover object-center border border-zinc-200 dark:border-zinc-700 shadow-sm"
                     unoptimized
                   />

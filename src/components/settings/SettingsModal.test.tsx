@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { vi } from "vitest"
 import { SettingsModal } from "./SettingsModal"
 import { SettingsProvider } from "@/contexts/SettingsContext"
+import { BACKGROUND_OPTIONS } from "@/data/background-images"
 
 vi.mock("next-themes", () => ({
   useTheme: vi.fn(),
@@ -122,12 +123,11 @@ describe("SettingsModal", () => {
 
   it("updates background image when a button option is clicked", () => {
     const { setBackgroundImage } = setup("light", "https://images.pexels.com/example.jpg")
-    const newValue = "https://images.pexels.com/videos/20666366/japan-kyoto-kyoto-station-public-20666366.jpeg?auto=compress&cs=tinysrgb&w=1600&h=900&fit=crop"
+    const option = BACKGROUND_OPTIONS.find((o) => o.id === "ninenzaka")!
 
-    const button = screen.getByText("Kyoto")
-    fireEvent.click(button)
+    fireEvent.click(screen.getByText(option.label))
 
-    expect(setBackgroundImage).toHaveBeenCalledWith(newValue)
+    expect(setBackgroundImage).toHaveBeenCalledWith(option.url)
   })
 
   it("shows a preview image when background is enabled", () => {
