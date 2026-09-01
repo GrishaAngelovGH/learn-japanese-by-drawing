@@ -168,6 +168,7 @@ function PracticeContent() {
   }
 
   const handleSpeak = () => {
+    if (isSpeaking) return
     setIsSpeaking(true)
     speakJapanese(
       currentWord.kana,
@@ -419,6 +420,7 @@ function PracticeContent() {
           {/* Play pronunciation button (bottom-right of card) */}
           <button
             onClick={handleSpeak}
+            disabled={isSpeaking}
             aria-label="Listen to pronunciation"
             className={`absolute bottom-4 right-4 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 cursor-pointer ${isSpeaking
               ? "bg-orange-500 border border-orange-400 text-white shadow-lg shadow-orange-200"

@@ -53,6 +53,35 @@ describe("Practice Page", () => {
     expect(mockSpeakJapanese.mock.calls[0][0]).toBe("あさごはん")
   })
 
+  it("disables the listen button while speaking", () => {
+    render(<PracticePage />)
+
+    const listenButton = screen.getByRole("button", {
+      name: "Listen to pronunciation"
+    })
+    expect(listenButton).not.toBeDisabled()
+
+    fireEvent.click(listenButton)
+
+    // handleSpeak sets isSpeaking(true) synchronously; the mocked speakJapanese
+    // never invokes onEnd, so the button stays disabled until it re-enables.
+    expect(listenButton).toBeDisabled()
+  })
+
+  it("does not replay pronunciation when listen button is clicked while speaking", () => {
+    render(<PracticePage />)
+
+    const listenButton = screen.getByRole("button", {
+      name: "Listen to pronunciation"
+    })
+
+    fireEvent.click(listenButton)
+    fireEvent.click(listenButton)
+    fireEvent.click(listenButton)
+
+    expect(mockSpeakJapanese).toHaveBeenCalledTimes(1)
+  })
+
   it("goes to next word when Next is clicked", () => {
     render(<PracticePage />)
     const nextButton = screen.getByRole("button", { name: "Next" })
