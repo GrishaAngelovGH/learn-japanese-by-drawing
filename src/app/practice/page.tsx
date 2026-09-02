@@ -17,6 +17,8 @@ import useViewTransition from "@/hooks/useViewTransition"
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition"
 import PronunciationDiff from "@/components/PronunciationDiff"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
+import { useSettings } from "@/contexts/SettingsContext"
+import { useDailyStreak } from "@/hooks/useDailyStreak"
 
 /** Words grouped by their romaji pronunciation, so we can flag homophones. */
 const homophoneMap = new Map<string, typeof words>()
@@ -61,6 +63,9 @@ function PracticeContent() {
     markCelebrated,
     triggerConfetti
   } = useCompletedWords()
+
+  const { dailyStreak } = useSettings()
+  const { recordCompletion } = useDailyStreak()
 
   const speech = useSpeechRecognition("ja-JP")
   // Browser support can only be known on the client; rendering it during SSR would cause a hydration mismatch.
@@ -191,8 +196,11 @@ function PracticeContent() {
         style: { background: "#16a34a", color: "#fff", fontSize: "1.125rem" }
       })
       markCelebrated(currentWord.id)
+      if (dailyStreak) {
+        recordCompletion()
+      }
     }
-  }, [currentWord.id, isCompleted, isCelebrated, markCelebrated, triggerConfetti])
+  }, [currentWord.id, isCompleted, isCelebrated, markCelebrated, triggerConfetti, dailyStreak, recordCompletion])
 
   // On a fresh reload (no explicit index in the URL), resume at the first
   // incomplete word instead of always starting at the first word. Persisted

@@ -12,7 +12,27 @@ vi.mock("@/lib/speech", () => ({
 vi.mock("@/lib/kanjivg", () => ({
   getStrokePaths: vi.fn()
 }))
+vi.mock("@/contexts/SettingsContext", () => ({
+  useSettings: vi.fn(() => ({
+    dailyStreak: true,
+    setDailyStreak: vi.fn()
+  }))
+}))
+vi.mock("@/hooks/useDailyStreak", () => ({
+  useDailyStreak: vi.fn(() => ({
+    recordCompletion: vi.fn(),
+    counts: {},
+    currentStreak: 0,
+    today: () => "2026-11-01",
+    reset: vi.fn()
+  }))
+}))
 
+import { useSettings } from "@/contexts/SettingsContext"
+import { useDailyStreak } from "@/hooks/useDailyStreak"
+
+const mockUseSettings = vi.mocked(useSettings)
+const mockUseDailyStreak = vi.mocked(useDailyStreak)
 const mockSpeakJapanese = vi.mocked(speakJapanese)
 const mockGetStrokePaths = vi.mocked(getStrokePaths)
 const mockUseSearchParams = vi.mocked(useSearchParams)
@@ -27,6 +47,18 @@ describe("Practice Page", () => {
     mockPush.mockClear()
     // Small session count so no test iterates the full production dictionary
     mockUseSearchParams.mockReturnValue(new URLSearchParams("?count=3") as ReadonlyURLSearchParams)
+    // Reset hooks to default values
+    mockUseSettings.mockReturnValue({
+      dailyStreak: true,
+      setDailyStreak: vi.fn()
+    })
+    mockUseDailyStreak.mockReturnValue({
+      recordCompletion: vi.fn(),
+      counts: {},
+      currentStreak: 0,
+      today: () => "2026-11-01",
+      reset: vi.fn()
+    })
   })
 
   afterEach(() => {
@@ -383,6 +415,64 @@ describe("Practice Page", () => {
       fireEvent.keyDown(window, { key: "ArrowRight" })
       expect(screen.queryByTestId("draw-canvas")).not.toBeInTheDocument()
       expect(screen.getByRole("heading", { level: 1, name: "ごはん" })).toBeInTheDocument()
+    })
+  })
+
+  describe("daily streak", () => {
+    it("records completion when a word is completed and daily streak is enabled", async () => {
+      const mockRecordCompletion = vi.fn()
+      mockUseDailyStreak.mockReturnValue({
+        recordCompletion: mockRecordCompletion,
+        counts: {},
+        currentStreak: 0,
+        today: () => "2026-11-01",
+        reset: vi.fn()
+      })
+
+      render(<PracticePage />)
+
+      // Complete the word by setting all three statuses in localStorage
+      // The celebration effect will trigger recordCompletion
+      localStorage.setItem(
+        "learn-japanese:completed-words",
+        JSON.stringify({
+          breakfast: { heard: true, written: true, pronounced: true, celebrated: false }
+        })
+      )
+
+      // Wait for the effect to run
+      await waitFor(() => {
+        expect(mockRecordCompletion).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it("does not record completion when daily streak is disabled", async () => {
+      const mockRecordCompletion = vi.fn()
+      mockUseSettings.mockReturnValue({
+        dailyStreak: false,
+        setDailyStreak: vi.fn()
+      })
+      mockUseDailyStreak.mockReturnValue({
+        recordCompletion: mockRecordCompletion,
+        counts: {},
+        currentStreak: 0,
+        today: () => "2026-11-01",
+        reset: vi.fn()
+      })
+
+      render(<PracticePage />)
+
+      // Complete the word
+      localStorage.setItem(
+        "learn-japanese:completed-words",
+        JSON.stringify({
+          breakfast: { heard: true, written: true, pronounced: true, celebrated: false }
+        })
+      )
+
+      await waitFor(() => {
+        expect(mockRecordCompletion).not.toHaveBeenCalled()
+      })
     })
   })
 })
