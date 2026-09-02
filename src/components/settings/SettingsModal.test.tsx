@@ -19,6 +19,8 @@ const setup = (
   theme: "light" | "dark" = "light",
   backgroundImage = "none",
   setBackgroundImage = vi.fn(),
+  dailyStreak = true,
+  setDailyStreak = vi.fn(),
   onClose = vi.fn()
 ) => {
   vi.mocked(useTheme).mockReturnValue({
@@ -30,6 +32,8 @@ const setup = (
   vi.mocked(useSettings).mockReturnValue({
     backgroundImage,
     setBackgroundImage,
+    dailyStreak,
+    setDailyStreak,
   })
 
   render(
@@ -38,7 +42,7 @@ const setup = (
     </SettingsProvider>
   )
 
-  return { setBackgroundImage, onClose }
+  return { setBackgroundImage, setDailyStreak, onClose }
 }
 
 describe("SettingsModal", () => {
@@ -71,6 +75,8 @@ describe("SettingsModal", () => {
     vi.mocked(useSettings).mockReturnValue({
       backgroundImage: "none",
       setBackgroundImage: vi.fn(),
+      dailyStreak: true,
+      setDailyStreak: vi.fn(),
     })
 
     render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
@@ -92,6 +98,8 @@ describe("SettingsModal", () => {
     vi.mocked(useSettings).mockReturnValue({
       backgroundImage: "none",
       setBackgroundImage: vi.fn(),
+      dailyStreak: true,
+      setDailyStreak: vi.fn(),
     })
 
     render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
@@ -138,9 +146,31 @@ describe("SettingsModal", () => {
     expect(screen.getByAltText("")).toHaveAttribute("src", url)
   })
 
+  it("toggles daily streak off when it is on", () => {
+    const { setDailyStreak } = setup("light", "none", vi.fn(), true)
+
+    const toggle = screen.getByRole("button", { name: /daily streak/i })
+    expect(toggle).toHaveAttribute("aria-pressed", "true")
+
+    fireEvent.click(toggle)
+
+    expect(setDailyStreak).toHaveBeenCalledWith(false)
+  })
+
+  it("toggles daily streak on when it is off", () => {
+    const { setDailyStreak } = setup("light", "none", vi.fn(), false)
+
+    const toggle = screen.getByRole("button", { name: /daily streak/i })
+    expect(toggle).toHaveAttribute("aria-pressed", "false")
+
+    fireEvent.click(toggle)
+
+    expect(setDailyStreak).toHaveBeenCalledWith(true)
+  })
+
   it("calls onClose when close button is clicked", () => {
     const onClose = vi.fn()
-    setup("light", "none", vi.fn(), onClose)
+    setup("light", "none", vi.fn(), true, vi.fn(), onClose)
 
     const closeButton = screen.getByLabelText("Close settings")
     fireEvent.click(closeButton)
@@ -150,7 +180,7 @@ describe("SettingsModal", () => {
 
   it("calls onClose when ESC key is pressed", () => {
     const onClose = vi.fn()
-    setup("light", "none", vi.fn(), onClose)
+    setup("light", "none", vi.fn(), true, vi.fn(), onClose)
 
     fireEvent.keyDown(document, { key: "Escape" })
 
@@ -159,7 +189,7 @@ describe("SettingsModal", () => {
 
   it("does not call onClose when other keys are pressed", () => {
     const onClose = vi.fn()
-    setup("light", "none", vi.fn(), onClose)
+    setup("light", "none", vi.fn(), true, vi.fn(), onClose)
 
     fireEvent.keyDown(document, { key: "Enter" })
 

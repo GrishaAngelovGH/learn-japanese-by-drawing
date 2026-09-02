@@ -11,11 +11,13 @@ import {
 
 export type Settings = {
   backgroundImage: string
+  /** Whether the daily streak graph is shown on the practice page. */
+  dailyStreak: boolean
 }
 
 const STORAGE_KEY = "learn-japanese:settings"
 
-const DEFAULT_SETTINGS: Settings = { backgroundImage: "none" }
+const DEFAULT_SETTINGS: Settings = { backgroundImage: "none", dailyStreak: true }
 
 function parseSettings(raw: string | null): Settings {
   if (!raw) return DEFAULT_SETTINGS
@@ -69,6 +71,7 @@ function persist(settings: Settings): void {
 interface SettingsContextType {
   settings: Settings
   setBackgroundImage: (value: string) => void
+  setDailyStreak: (value: boolean) => void
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -85,8 +88,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     []
   )
 
+  const setDailyStreak = useCallback(
+    (value: boolean) =>
+      persist({ ...parseSettings(getSnapshot()), dailyStreak: value }),
+    []
+  )
+
   return (
-    <SettingsContext.Provider value={{ settings, setBackgroundImage }}>
+    <SettingsContext.Provider value={{ settings, setBackgroundImage, setDailyStreak }}>
       {children}
     </SettingsContext.Provider>
   )
@@ -99,6 +108,8 @@ export function useSettings() {
   }
   return {
     backgroundImage: context.settings.backgroundImage,
-    setBackgroundImage: context.setBackgroundImage
+    setBackgroundImage: context.setBackgroundImage,
+    dailyStreak: context.settings.dailyStreak,
+    setDailyStreak: context.setDailyStreak
   }
 }

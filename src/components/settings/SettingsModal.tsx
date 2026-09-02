@@ -1,6 +1,6 @@
 "use client"
 
-import { X, Image as ImageIcon, Sun, Moon, Trash2 } from "lucide-react"
+import { X, Image as ImageIcon, Sun, Moon, Trash2, Flame } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { useEffect } from "react"
@@ -18,6 +18,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { theme, setTheme } = useTheme()
   const isDark = theme === "dark"
   const { backgroundImage, setBackgroundImage } = useSettings()
+  const { dailyStreak, setDailyStreak } = useSettings()
   const isBackgroundEnabled = backgroundImage !== "none"
   const { clearAll } = useCompletedWords()
 
@@ -74,6 +75,27 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               ></span>
             </button>
           </label>
+
+          {/* Daily Streak */}
+          <div className="space-y-2">
+            <label className="flex items-center justify-between cursor-pointer group">
+              <span className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+                <Flame className="size-4" />
+                Daily Streak
+              </span>
+              <button
+                onClick={() => setDailyStreak(!dailyStreak)}
+                aria-pressed={dailyStreak}
+                className={`w-12 h-6 rounded-full transition-colors duration-200 ${dailyStreak ? "bg-orange-500" : "bg-zinc-300 dark:bg-zinc-600"
+                  }`}
+              >
+                <span
+                  className={`block w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-300 ${dailyStreak ? "translate-x-6" : "translate-x-1"
+                    }`}
+                ></span>
+              </button>
+            </label>
+          </div>
 
           {/* Background Image */}
           <div className="space-y-2">
