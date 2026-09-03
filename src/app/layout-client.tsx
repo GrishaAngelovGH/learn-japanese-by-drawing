@@ -2,13 +2,14 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import { useState } from "react";
-import { Settings } from "lucide-react";
+import { Settings, Flame } from "lucide-react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SettingsModal } from "@/components/settings";
 import { Toaster } from "sonner";
 import { Background } from "@/components/Background";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import useViewTransition from "@/hooks/useViewTransition";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,6 +23,7 @@ const geistMono = Geist_Mono({
 
 export function LayoutClient({ children }: { children: React.ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const { push } = useViewTransition();
 
   return (
     <html
@@ -40,6 +42,13 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
                 className="fixed top-6 right-6 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
               >
                 <Settings className="size-4" />
+              </button>
+              <button
+                onClick={() => push("/streak", "forward")}
+                aria-label="Streak"
+                className="fixed top-18 right-6 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
+                <Flame className="size-4" />
               </button>
               {children}
               <Toaster position="bottom-center" />

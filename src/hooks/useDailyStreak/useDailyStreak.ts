@@ -57,6 +57,7 @@ export function useDailyStreak(options: Options = {}) {
   // Defer reading localStorage until after hydration so the server and
   // client render identical initial HTML (empty counts).
   const [counts, setCounts] = useState<Record<string, number>>({})
+  const [currentStreakValue, setCurrentStreakValue] = useState(0)
   useEffect(() => {
     const id = setTimeout(() => {
       setCounts(loadCounts())
@@ -65,6 +66,15 @@ export function useDailyStreak(options: Options = {}) {
   }, [])
 
   const today = useCallback((): string => toDateKey(new Date(now())), [now])
+
+  // Recompute streak after mount so Date.now() is not evaluated during
+  // prerender (Next.js unstable value warning).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setCurrentStreakValue(calculateStreak(counts, today()))
+    }, 0)
+    return () => clearTimeout(id)
+  }, [counts, today])
 
   const recordCompletion = useCallback(
     (dateKey?: string) => {
@@ -83,10 +93,6 @@ export function useDailyStreak(options: Options = {}) {
     [counts]
   )
 
-  const currentStreak = useMemo((): number => {
-    return calculateStreak(counts, today())
-  }, [counts, today])
-
   const reset = useCallback(() => {
     setCounts({})
     persist({})
@@ -95,7 +101,7 @@ export function useDailyStreak(options: Options = {}) {
   return {
     counts,
     getCount,
-    currentStreak,
+    currentStreak: currentStreakValue,
     today,
     recordCompletion,
     reset

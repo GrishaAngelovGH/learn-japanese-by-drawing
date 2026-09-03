@@ -5,7 +5,7 @@ import { DailyStreakGraph } from "./DailyStreakGraph"
 describe("DailyStreakGraph", () => {
   it("renders empty state when there are no counts", async () => {
     render(
-      <DailyStreakGraph counts={{}} today={new Date("2026-11-01")} />
+      <DailyStreakGraph counts={{}} />
     )
     await waitFor(() => {
       expect(screen.getByText("Complete a word to start your streak")).toBeInTheDocument()
@@ -14,15 +14,12 @@ describe("DailyStreakGraph", () => {
 
   it("renders the expected number of cells", async () => {
     const { container } = render(
-      <DailyStreakGraph
-        counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
-      />
+      <DailyStreakGraph counts={{ "2026-11-01": 1 }} />
     )
     await waitFor(() => {
-      // Should have 53 weeks × 7 days = 371 cells
-      const cells = container.querySelectorAll(".w-3.h-3")
-      expect(cells.length).toBe(53 * 7)
+      // Exactly one year of days (365), like GitHub
+      const cells = container.querySelectorAll('[role="gridcell"]')
+      expect(cells.length).toBe(365)
     })
   })
 
@@ -30,7 +27,7 @@ describe("DailyStreakGraph", () => {
     render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
@@ -43,15 +40,15 @@ describe("DailyStreakGraph", () => {
     render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
-      // Should have weekday labels (Sun, Tue, Thu, Sat)
-      expect(screen.getByText("Sun")).toBeInTheDocument()
-      expect(screen.getByText("Tue")).toBeInTheDocument()
-      expect(screen.getByText("Thu")).toBeInTheDocument()
-      expect(screen.getByText("Sat")).toBeInTheDocument()
+      // GitHub-style: only Mon / Wed / Fri are labelled
+      expect(screen.getByText("Mon")).toBeInTheDocument()
+      expect(screen.getByText("Wed")).toBeInTheDocument()
+      expect(screen.getByText("Fri")).toBeInTheDocument()
+      expect(screen.queryByText("Sun")).not.toBeInTheDocument()
     })
   })
 
@@ -59,16 +56,16 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{
-          "2026-11-01": 1, // level 1
-          "2026-11-02": 3, // level 2
-          "2026-11-03": 6, // level 3
+          "2026-10-29": 1, // level 1
+          "2026-10-30": 3, // level 2
+          "2026-10-31": 6, // level 3
         }}
-        today={new Date("2026-11-03")}
+
       />
     )
     await waitFor(() => {
       // Check that different levels have different classes
-      const cells = container.querySelectorAll(".w-3.h-3")
+      const cells = container.querySelectorAll('[role="gridcell"]')
       const hasLightGreen = Array.from(cells).some((cell) =>
         cell.classList.contains("bg-green-200")
       )
@@ -89,11 +86,11 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 5 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
-      const cells = container.querySelectorAll(".w-3.h-3")
+      const cells = container.querySelectorAll('[role="gridcell"]')
       const cellWithCount = Array.from(cells).find(
         (cell) => cell.getAttribute("title")?.includes("2026-11-01")
       )
@@ -107,11 +104,11 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
-      const cells = container.querySelectorAll(".w-3.h-3")
+      const cells = container.querySelectorAll('[role="gridcell"]')
       const hasDarkModeClass = Array.from(cells).some((cell) =>
         cell.classList.contains("dark:bg-green-900")
       )
@@ -124,11 +121,11 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 5 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
-      const cells = container.querySelectorAll(".w-3.h-3")
+      const cells = container.querySelectorAll('[role="gridcell"]')
       const cellWithLabel = Array.from(cells).find(
         (cell) => cell.getAttribute("aria-label")?.includes("5 words")
       )
@@ -142,7 +139,7 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
@@ -159,11 +156,11 @@ describe("DailyStreakGraph", () => {
     const { container } = render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
-      const emptyCells = container.querySelectorAll('.w-3.h-3[aria-hidden="true"]')
+      const emptyCells = container.querySelectorAll('[role="grid"] [aria-hidden="true"]')
       // The grid includes null cells for future dates, which should be aria-hidden
       expect(emptyCells.length).toBeGreaterThan(0)
     })
@@ -173,13 +170,23 @@ describe("DailyStreakGraph", () => {
     render(
       <DailyStreakGraph
         counts={{ "2026-11-01": 1 }}
-        today={new Date("2026-11-01")}
+
       />
     )
     await waitFor(() => {
       const summary = screen.getByRole("region", { name: /Daily streak graph/ })
       expect(summary).toBeInTheDocument()
       expect(summary).toHaveClass("sr-only")
+    })
+  })
+
+  it("shows the exact word counts for each color in the legend", async () => {
+    render(<DailyStreakGraph counts={{ "2026-10-31": 1 }} />)
+    await waitFor(() => {
+      expect(screen.getByText("Words per day:")).toBeInTheDocument()
+      for (const range of ["0", "1–2", "3–5", "6+"]) {
+        expect(screen.getByText(range)).toBeInTheDocument()
+      }
     })
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { getLevel, LEVEL_THRESHOLDS, LEVEL_CLASSES } from "./levels"
+import { getLevel, getLevelRange, LEVEL_THRESHOLDS, LEVEL_CLASSES } from "./levels"
 
 describe("levels", () => {
   describe("getLevel", () => {
@@ -70,6 +70,21 @@ describe("levels", () => {
       expect(LEVEL_CLASSES[1].light).toContain("green-200")
       expect(LEVEL_CLASSES[2].light).toContain("green-400")
       expect(LEVEL_CLASSES[3].light).toContain("green-600")
+    })
+  })
+
+  describe("getLevelRange", () => {
+    it("describes the exact word counts for each level", () => {
+      expect([0, 1, 2, 3].map((l) => getLevelRange(l as 0 | 1 | 2 | 3))).toEqual([
+        "0", "1–2", "3–5", "6+",
+      ])
+    })
+
+    it("agrees with getLevel at every range boundary", () => {
+      expect(getLevel(2)).toBe(1)
+      expect(getLevel(3)).toBe(2)
+      expect(getLevel(5)).toBe(2)
+      expect(getLevel(6)).toBe(3)
     })
   })
 })

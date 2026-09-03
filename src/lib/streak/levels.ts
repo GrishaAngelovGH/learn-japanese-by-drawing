@@ -59,3 +59,16 @@ export const LEVEL_CLASSES = {
     dark: "dark:bg-green-600",
   },
 } as const satisfies Record<Level, { light: string; dark: string }>
+
+/**
+ * Human-readable word range for a level, derived from LEVEL_THRESHOLDS so the
+ * legend can never drift from the colors: 0 → "0", 1 → "1–2", 2 → "3–5",
+ * 3 → "6+".
+ */
+export function getLevelRange(level: Level): string {
+  const min = LEVEL_THRESHOLDS[level]
+  if (level === 0) return String(min)
+  if (level === 3) return `${min}+`
+  const max = LEVEL_THRESHOLDS[(level + 1) as 2 | 3] - 1
+  return min === max ? String(min) : `${min}–${max}`
+}

@@ -1,13 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { buildGrid, getLevel, LEVEL_CLASSES } from "@/lib/streak"
+import { useEffect, useRef, useState } from "react"
+import {
+  buildGrid,
+  getLevel,
+  getLevelRange,
+  getMonthLabels,
+  LEVEL_CLASSES,
+  type Level,
+} from "@/lib/streak"
 
 interface DailyStreakGraphProps {
   /** Per-day completion counts from useDailyStreak. */
   counts: Record<string, number>
-  /** Today's date as a Date object. */
-  today: Date
 }
 
 const MONTH_NAMES = [
@@ -15,25 +20,49 @@ const MONTH_NAMES = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ]
 
-const WEEKDAY_LABELS = ["Sun", "", "Tue", "", "Thu", "", "Sat"]
+/** Like GitHub, only label Mon / Wed / Fri; other rows stay blank. */
+const WEEKDAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""]
 
-export function DailyStreakGraph({ counts, today }: DailyStreakGraphProps) {
-  // Defer rendering until after mount to avoid hydration mismatch
-  // (grid depends on today's date, which differs between server and client)
-  const [isMounted, setIsMounted] = useState(false)
+/** Width of the weekday label column; wide enough for "Mon" at text-xs. */
+const LABEL_COL_PX = 32
+/** Height of the month label row; fits one text-xs line (16px). */
+const MONTH_ROW_PX = 16
+/** Cells stretch to fill the card but never shrink below this; narrower
+ *  screens scroll horizontally instead (starting at the latest week). */
+const MIN_CELL_PX = 10
+const GAP_PX = 4
+
+export function DailyStreakGraph({ counts }: DailyStreakGraphProps) {
+  // Defer computing today until after mount to avoid prerendering with
+  // Date.now() (Next.js unstable value warning).
+  const [today, setToday] = useState<Date | null>(null)
 
   useEffect(() => {
-    // Use setTimeout to defer the state update to the next tick
-    // This avoids the linter warning about synchronous setState in effects
-    const timeout = setTimeout(() => setIsMounted(true), 0)
+    const timeout = setTimeout(() => setToday(new Date()), 0)
     return () => clearTimeout(timeout)
   }, [])
 
-  if (!isMounted) {
+  if (!today) {
     return null
   }
 
+  return <Graph today={today} counts={counts} />
+}
+
+interface GraphProps {
+  today: Date
+  counts: Record<string, number>
+}
+
+function Graph({ today, counts }: GraphProps) {
   const grid = buildGrid(today)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // On narrow screens start at the most recent week.
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [])
 
   // If there are no counts at all, show empty state
   const hasData = Object.keys(counts).length > 0
@@ -46,25 +75,8 @@ export function DailyStreakGraph({ counts, today }: DailyStreakGraphProps) {
     )
   }
 
-  // Calculate month labels - show month name at the first column of each month
-  const monthLabels: string[] = []
-  let lastMonth = -1
-
-  grid.forEach((week) => {
-    const firstDay = week.days[0]
-    if (firstDay) {
-      const date = new Date(firstDay)
-      const month = date.getMonth()
-      if (month !== lastMonth) {
-        monthLabels.push(MONTH_NAMES[month])
-        lastMonth = month
-      } else {
-        monthLabels.push("")
-      }
-    } else {
-      monthLabels.push("")
-    }
-  })
+  // Month name above the first week that starts in that month (like GitHub).
+  const monthLabels = getMonthLabels(grid)
 
   return (
     <div className="flex flex-col gap-2">
@@ -73,49 +85,64 @@ export function DailyStreakGraph({ counts, today }: DailyStreakGraphProps) {
         Your streak graph shows {Object.keys(counts).length} days of activity
       </div>
 
-      {/* Month labels row */}
-      <div
-        className="grid gap-1 text-xs text-zinc-500 dark:text-zinc-400"
-        style={{
-          gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {monthLabels.map((label, index) => (
-          <div key={index} className="text-center">
-            {label}
-          </div>
-        ))}
-      </div>
-
-      {/* Grid with weekday labels */}
-      <div className="flex gap-2">
-        {/* Weekday labels column */}
-        <div className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400 pt-1">
-          {WEEKDAY_LABELS.map((label, index) => (
-            <div key={index} className="h-3 flex items-center">
-              {label}
-            </div>
-          ))}
-        </div>
-
-        {/* Main grid */}
+      {/* Single grid: everything aligned together. Cells share the width. */}
+      <div ref={scrollRef} className="overflow-x-auto pr-4">
         <div
-          className="grid gap-1"
+          className="grid"
           style={{
-            gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(7, minmax(0, 1fr))`,
+            columnGap: GAP_PX,
+            rowGap: GAP_PX,
+            gridTemplateColumns: `${LABEL_COL_PX}px repeat(${grid.length}, minmax(${MIN_CELL_PX}px, 1fr))`,
+            gridTemplateRows: `${MONTH_ROW_PX}px repeat(7, auto)`,
+            minWidth: LABEL_COL_PX + grid.length * (MIN_CELL_PX + GAP_PX),
           }}
           role="grid"
           aria-label="Contribution graph showing daily word completions"
         >
+          {/* Top-left empty corner */}
+          <div style={{ gridColumn: 1, gridRow: 1 }} aria-hidden="true" />
+
+          {/* Month labels row. Left-aligned so the name starts at its column and
+            may overflow to the right into the (empty) cells' header row. */}
+          {monthLabels.map((month, weekIndex) =>
+            month === -1 ? null : (
+              <div
+                key={weekIndex}
+                className="text-xs leading-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400"
+                style={{ gridColumn: weekIndex + 2, gridRow: 1 }}
+              >
+                {MONTH_NAMES[month]}
+              </div>
+            )
+          )}
+
+          {/* Weekday labels column (column 1, rows 2 to 8). Centered on the
+            12px row, so line-height is pinned to the row height. */}
+          {WEEKDAY_LABELS.map((label, dayIndex) =>
+            label ? (
+              <div
+                key={dayIndex}
+                className="sticky left-0 z-10 bg-white dark:bg-zinc-800 text-xs leading-none text-zinc-500 dark:text-zinc-400 flex items-center"
+                style={{ gridColumn: 1, gridRow: dayIndex + 2 }}
+              >
+                {label}
+              </div>
+            ) : null
+          )}
+
+          {/* Squares grid (columns 2 to 54, rows 2 to 8) */}
           {grid.map((week, weekIndex) =>
             week.days.map((day, dayIndex) => {
               if (day === null) {
                 return (
                   <div
                     key={`${weekIndex}-${dayIndex}`}
-                    className="w-3 h-3"
+                    className="w-full aspect-square"
                     aria-hidden="true"
+                    style={{
+                      gridColumn: weekIndex + 2,
+                      gridRow: dayIndex + 2,
+                    }}
                   />
                 )
               }
@@ -123,20 +150,44 @@ export function DailyStreakGraph({ counts, today }: DailyStreakGraphProps) {
               const count = counts[day] ?? 0
               const level = getLevel(count)
               const classes = LEVEL_CLASSES[level]
-              const tooltipText = `${count} word${count === 1 ? '' : 's'} on ${day}`
+              const tooltipText =
+                count > 0
+                  ? `${count} word${count === 1 ? '' : 's'} on ${day}`
+                  : day
 
               return (
                 <div
                   key={day}
-                  className={`w-3 h-3 rounded-sm ${classes.light} ${classes.dark}`}
+                  className={`w-full aspect-square rounded ${classes.light} ${classes.dark}`}
                   title={tooltipText}
                   aria-label={tooltipText}
                   role="gridcell"
+                  style={{
+                    gridColumn: weekIndex + 2,
+                    gridRow: dayIndex + 2,
+                  }}
                 />
               )
             })
           )}
         </div>
+      </div>
+
+      {/* Legend: exact word counts per color, from the same thresholds as the cells */}
+      <div
+        className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400"
+        aria-label="Legend: words completed per day"
+      >
+        <span>Words per day:</span>
+        {([0, 1, 2, 3] as Level[]).map((level) => (
+          <span key={level} className="inline-flex items-center gap-1.5">
+            <span
+              className={`w-3 h-3 rounded ${LEVEL_CLASSES[level].light} ${LEVEL_CLASSES[level].dark}`}
+              aria-hidden="true"
+            />
+            <span>{getLevelRange(level)}</span>
+          </span>
+        ))}
       </div>
     </div>
   )

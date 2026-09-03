@@ -78,7 +78,7 @@ describe("useDailyStreak", () => {
     expect(result2.current.getCount("2026-06-15")).toBe(1)
   })
 
-  it("calculates current streak from stored counts", () => {
+  it("calculates current streak from stored counts", async () => {
     const now = () => new Date(2026, 5, 15, 12, 0).getTime() // 2026-06-15
     const { result } = renderHook(() => useDailyStreak({ now }))
 
@@ -87,11 +87,14 @@ describe("useDailyStreak", () => {
       result.current.recordCompletion("2026-06-14")
       result.current.recordCompletion("2026-06-15")
     })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
 
     expect(result.current.currentStreak).toBe(3)
   })
 
-  it("streak breaks on a gap", () => {
+  it("streak breaks on a gap", async () => {
     const now = () => new Date(2026, 5, 15, 12, 0).getTime() // 2026-06-15
     const { result } = renderHook(() => useDailyStreak({ now }))
 
@@ -99,16 +102,22 @@ describe("useDailyStreak", () => {
       result.current.recordCompletion("2026-06-14")
       result.current.recordCompletion("2026-06-15")
     })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
 
     expect(result.current.currentStreak).toBe(2)
   })
 
-  it("falls back to yesterday when today has no completions", () => {
+  it("falls back to yesterday when today has no completions", async () => {
     const now = () => new Date(2026, 5, 15, 12, 0).getTime() // 2026-06-15
     const { result } = renderHook(() => useDailyStreak({ now }))
 
     act(() => {
       result.current.recordCompletion("2026-06-14")
+    })
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
     })
 
     expect(result.current.currentStreak).toBe(1)
