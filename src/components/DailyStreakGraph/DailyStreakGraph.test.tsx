@@ -90,4 +90,67 @@ describe("DailyStreakGraph", () => {
       expect(hasDarkModeClass).toBe(true)
     })
   })
+
+  it("adds aria-label to cells for screen readers", async () => {
+    const { container } = render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 5 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      const cells = container.querySelectorAll(".w-3.h-3")
+      const cellWithLabel = Array.from(cells).find(
+        (cell) => cell.getAttribute("aria-label")?.includes("5 words")
+      )
+
+      expect(cellWithLabel).toBeDefined()
+      expect(cellWithLabel?.getAttribute("aria-label")).toContain("2026-11-01")
+    })
+  })
+
+  it("adds role attributes for semantic markup", async () => {
+    const { container } = render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 1 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      const grid = container.querySelector('[role="grid"]')
+      expect(grid).toBeInTheDocument()
+      expect(grid?.getAttribute("aria-label")).toContain("Contribution graph")
+
+      const cells = container.querySelectorAll('[role="gridcell"]')
+      expect(cells.length).toBeGreaterThan(0)
+    })
+  })
+
+  it("hides empty cells from screen readers", async () => {
+    const { container } = render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 1 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      const emptyCells = container.querySelectorAll('.w-3.h-3[aria-hidden="true"]')
+      // The grid includes null cells for future dates, which should be aria-hidden
+      expect(emptyCells.length).toBeGreaterThan(0)
+    })
+  })
+
+  it("has visually hidden summary for screen readers", async () => {
+    render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 1 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      const summary = screen.getByRole("region", { name: /Daily streak graph/ })
+      expect(summary).toBeInTheDocument()
+      expect(summary).toHaveClass("sr-only")
+    })
+  })
 })

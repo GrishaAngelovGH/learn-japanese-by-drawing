@@ -41,28 +41,44 @@ export function DailyStreakGraph({ counts, today }: DailyStreakGraphProps) {
 
   return (
     <div className="flex flex-col gap-2">
+      {/* Visually hidden summary for screen readers */}
+      <div className="sr-only" role="region" aria-label="Daily streak graph">
+        Your streak graph shows {Object.keys(counts).length} days of activity
+      </div>
+
       <div
         className="grid gap-1"
         style={{
           gridTemplateColumns: `repeat(${grid.length}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(7, minmax(0, 1fr))`,
         }}
+        role="grid"
+        aria-label="Contribution graph showing daily word completions"
       >
         {grid.map((week, weekIndex) =>
           week.days.map((day, dayIndex) => {
             if (day === null) {
-              return <div key={`${weekIndex}-${dayIndex}`} className="w-3 h-3" />
+              return (
+                <div
+                  key={`${weekIndex}-${dayIndex}`}
+                  className="w-3 h-3"
+                  aria-hidden="true"
+                />
+              )
             }
 
             const count = counts[day] ?? 0
             const level = getLevel(count)
             const classes = LEVEL_CLASSES[level]
+            const tooltipText = `${count} word${count === 1 ? '' : 's'} on ${day}`
 
             return (
               <div
                 key={day}
                 className={`w-3 h-3 rounded-sm ${classes.light} ${classes.dark}`}
-                title={`${count} word${count === 1 ? '' : 's'} on ${day}`}
+                title={tooltipText}
+                aria-label={tooltipText}
+                role="gridcell"
               />
             )
           })
