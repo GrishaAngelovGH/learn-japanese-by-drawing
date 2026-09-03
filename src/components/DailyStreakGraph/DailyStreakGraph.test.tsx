@@ -26,6 +26,35 @@ describe("DailyStreakGraph", () => {
     })
   })
 
+  it("renders month labels above the grid", async () => {
+    render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 1 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      // Should have month labels (abbreviated names)
+      expect(screen.getAllByText("Nov").length).toBeGreaterThan(0)
+    })
+  })
+
+  it("renders weekday labels to the left of the grid", async () => {
+    render(
+      <DailyStreakGraph
+        counts={{ "2026-11-01": 1 }}
+        today={new Date("2026-11-01")}
+      />
+    )
+    await waitFor(() => {
+      // Should have weekday labels (Sun, Tue, Thu, Sat)
+      expect(screen.getByText("Sun")).toBeInTheDocument()
+      expect(screen.getByText("Tue")).toBeInTheDocument()
+      expect(screen.getByText("Thu")).toBeInTheDocument()
+      expect(screen.getByText("Sat")).toBeInTheDocument()
+    })
+  })
+
   it("colors cells by level", async () => {
     const { container } = render(
       <DailyStreakGraph
