@@ -14,6 +14,8 @@ vi.mock("@/lib/kanjivg", () => ({
 }))
 vi.mock("@/contexts/SettingsContext", () => ({
   useSettings: vi.fn(() => ({
+    backgroundImage: "none",
+    setBackgroundImage: vi.fn(),
     dailyStreak: true,
     setDailyStreak: vi.fn()
   }))
@@ -22,6 +24,7 @@ vi.mock("@/hooks/useDailyStreak", () => ({
   useDailyStreak: vi.fn(() => ({
     recordCompletion: vi.fn(),
     counts: {},
+    getCount: vi.fn(() => 0),
     currentStreak: 0,
     today: () => "2026-11-01",
     reset: vi.fn()
@@ -49,12 +52,15 @@ describe("Practice Page", () => {
     mockUseSearchParams.mockReturnValue(new URLSearchParams("?count=3") as ReadonlyURLSearchParams)
     // Reset hooks to default values
     mockUseSettings.mockReturnValue({
+      backgroundImage: "none",
+      setBackgroundImage: vi.fn(),
       dailyStreak: true,
       setDailyStreak: vi.fn()
     })
     mockUseDailyStreak.mockReturnValue({
       recordCompletion: vi.fn(),
       counts: {},
+      getCount: vi.fn(() => 0),
       currentStreak: 0,
       today: () => "2026-11-01",
       reset: vi.fn()
@@ -421,9 +427,16 @@ describe("Practice Page", () => {
   describe("daily streak", () => {
     it("records completion when a word is completed and daily streak is enabled", async () => {
       const mockRecordCompletion = vi.fn()
+      mockUseSettings.mockReturnValue({
+        backgroundImage: "none",
+        setBackgroundImage: vi.fn(),
+        dailyStreak: true,
+        setDailyStreak: vi.fn()
+      })
       mockUseDailyStreak.mockReturnValue({
         recordCompletion: mockRecordCompletion,
         counts: {},
+        getCount: vi.fn(() => 0),
         currentStreak: 0,
         today: () => "2026-11-01",
         reset: vi.fn()
@@ -449,12 +462,15 @@ describe("Practice Page", () => {
     it("does not record completion when daily streak is disabled", async () => {
       const mockRecordCompletion = vi.fn()
       mockUseSettings.mockReturnValue({
+        backgroundImage: "none",
+        setBackgroundImage: vi.fn(),
         dailyStreak: false,
         setDailyStreak: vi.fn()
       })
       mockUseDailyStreak.mockReturnValue({
         recordCompletion: mockRecordCompletion,
         counts: {},
+        getCount: vi.fn(() => 0),
         currentStreak: 0,
         today: () => "2026-11-01",
         reset: vi.fn()
