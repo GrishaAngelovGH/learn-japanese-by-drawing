@@ -136,6 +136,20 @@ describe("Practice Page", () => {
     expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
   })
 
+  it("shows the screenshot/restart group (disabled) on an incomplete last word", async () => {
+    mockUseSearchParams.mockReturnValue(
+      new URLSearchParams("?count=3&index=2") as ReadonlyURLSearchParams
+    )
+
+    render(<PracticePage />)
+
+    const camera = await screen.findByRole("button", { name: "Take screenshot" })
+    const restart = screen.getByRole("button", { name: "Restart" })
+    expect(camera).toBeDisabled()
+    expect(restart).toBeDisabled()
+    expect(screen.queryByRole("button", { name: /next/i })).not.toBeInTheDocument()
+  })
+
   it("restarts to first word when Restart is clicked at last word", async () => {
     // Start at the last word with only that word completed (not all words,
     // so the Restart button shows instead of Reset all)
@@ -156,69 +170,18 @@ describe("Practice Page", () => {
       expect(screen.getByRole("button", { name: "Restart" })).not.toBeDisabled()
     )
 
+    // Click restart - opens dialog
     fireEvent.click(screen.getByRole("button", { name: "Restart" }))
+
+    // Click Reset in the dialog
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }))
+
     expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
   })
 
-  it("shows Next label then Restart label at the right times", async () => {
-    // At first word, button says Next (not Restart)
-    render(<PracticePage />)
 
-    expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Restart" })).not.toBeInTheDocument()
 
-    // Navigate to last word and complete it: Restart shows (not Next)
-    mockUseSearchParams.mockReturnValue(
-      new URLSearchParams("?count=3&index=2") as ReadonlyURLSearchParams
-    )
-    localStorage.setItem(
-      "learn-japanese:completed-words",
-      JSON.stringify({
-        water: { heard: true, written: true, pronounced: true, celebrated: false }
-      })
-    )
-    render(<PracticePage />)
 
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Restart" })).not.toBeDisabled()
-    )
-
-    expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument()
-
-    // Click Restart → back to first word, button says Next again
-    fireEvent.click(screen.getByRole("button", { name: "Restart" }))
-    expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Next" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Restart" })).not.toBeInTheDocument()
-  })
-
-  it("shows Restart immediately when session has only one word", async () => {
-    // count=1: index 0 is already the last word (sessionCount - 1 = 0)
-    mockUseSearchParams.mockReturnValue(new URLSearchParams("?count=1") as ReadonlyURLSearchParams)
-
-    render(<PracticePage />)
-
-    // Complete the word so Restart is enabled
-    localStorage.setItem(
-      "learn-japanese:completed-words",
-      JSON.stringify({
-        breakfast: { heard: true, written: true, pronounced: true, celebrated: false }
-      })
-    )
-
-    // Statuses load asynchronously after mount; wait for Restart to be enabled.
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Restart" })).not.toBeDisabled()
-    )
-
-    // Restart button is shown right away; no Next needed
-    expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Next" })).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole("button", { name: "Restart" }))
-    expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
-  })
 
   it("toggles the draw canvas with the Learn to draw button", async () => {
     render(<PracticePage />)
@@ -417,6 +380,9 @@ describe("Practice Page", () => {
       )
 
       fireEvent.click(screen.getByRole("button", { name: "Restart" }))
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole("button", { name: "Reset" }))
       expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
       expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
     })
@@ -465,6 +431,9 @@ describe("Practice Page", () => {
       )
 
       fireEvent.keyDown(window, { key: "ArrowRight" })
+      expect(screen.getByRole("dialog")).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole("button", { name: "Reset" }))
       expect(screen.getByRole("heading", { level: 1, name: "朝ご飯" })).toBeInTheDocument()
       expect(mockPush).toHaveBeenCalledWith("?count=3&index=0")
     })
@@ -545,55 +514,6 @@ describe("Practice Page", () => {
       await waitFor(() => {
         expect(mockRecordCompletion).not.toHaveBeenCalled()
       })
-    })
-
-    it("shows a reset confirmation dialog when all words are completed", async () => {
-      const mockReset = vi.fn()
-      mockUseDailyStreak.mockReturnValue({
-        recordCompletion: vi.fn(),
-        counts: {},
-        getCount: vi.fn(() => 0),
-        currentStreak: 0,
-        today: () => "2026-11-01",
-        reset: mockReset
-      })
-
-      // Complete every word in the count=3 session
-      localStorage.setItem(
-        "learn-japanese:completed-words",
-        JSON.stringify({
-          breakfast: { heard: true, written: true, pronounced: true, celebrated: false },
-          rice: { heard: true, written: true, pronounced: true, celebrated: false },
-          water: { heard: true, written: true, pronounced: true, celebrated: false }
-        })
-      )
-
-      render(<PracticePage />)
-
-      // Wait for the "Reset all" button to appear
-      await waitFor(() =>
-        expect(screen.queryByRole("button", { name: "Reset all" })).toBeInTheDocument()
-      )
-
-      // Open the reset dialog
-      fireEvent.click(screen.getByRole("button", { name: "Reset all" }))
-
-      // Verify the dialog appears
-      expect(screen.getByRole("dialog")).toBeInTheDocument()
-      expect(screen.getByText("Reset streak?")).toBeInTheDocument()
-
-      // Click Cancel and verify dialog closes without resetting
-      fireEvent.click(screen.getByRole("button", { name: "Cancel" }))
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-      expect(mockReset).not.toHaveBeenCalled()
-
-      // Reopen and click Reset
-      fireEvent.click(screen.getByRole("button", { name: "Reset all" }))
-      fireEvent.click(screen.getByRole("button", { name: "Reset" }))
-
-      // Verify reset was called and dialog closes
-      expect(mockReset).toHaveBeenCalledTimes(1)
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
   })
 })

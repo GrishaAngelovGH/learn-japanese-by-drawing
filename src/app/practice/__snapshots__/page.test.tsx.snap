@@ -3,7 +3,7 @@
 exports[`Practice Page > should render the component 1`] = `
 <div>
   <div
-    class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root"
+    class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name:root"
   >
     <main
       class="w-full max-w-2xl"

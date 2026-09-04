@@ -3,7 +3,7 @@
 import { Suspense, useState, useSyncExternalStore, useEffect, useRef } from "react"
 import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
-import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, Camera, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -81,6 +81,10 @@ function PracticeContent() {
   // Once every word in the current session is complete, offer a reset so the
   // learner can start over with a clean slate (clears both progress and the streak).
   const allWordsCompleted = words.slice(0, sessionCount).every((w) => isCompleted(w.id))
+  const isLastWord = currentIndex >= sessionCount - 1
+  // On the last word the screenshot/restart group stays visible but is
+  // disabled until that word is completed.
+  const groupEnabled = allWordsCompleted || isCompleted(currentWord.id)
 
   const handleOpenResetDialog = () => {
     setIsResetDialogOpen(true)
@@ -98,6 +102,13 @@ function PracticeContent() {
     setMode("idle")
     speech.reset()
     setIsResetDialogOpen(false)
+  }
+
+  const handleScreenshot = () => {
+    // Navigate to streak page with a flag to auto-trigger screenshot
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("screenshot", "true")
+    router.push(`/streak?${params.toString()}`)
   }
 
   const speech = useSpeechRecognition("ja-JP")
@@ -163,9 +174,9 @@ function PracticeContent() {
     speech.reset()
   }
 
-  const handlersRef = useRef({ handlePrev, handleNext, handleRestart })
+  const handlersRef = useRef({ handlePrev, handleNext, handleOpenResetDialog })
   useEffect(() => {
-    handlersRef.current = { handlePrev, handleNext, handleRestart }
+    handlersRef.current = { handlePrev, handleNext, handleOpenResetDialog }
   })
 
   // Arrow key navigation between words (prev/next only, never preview/draw toggle)
@@ -180,7 +191,7 @@ function PracticeContent() {
       } else if (event.key === "ArrowRight") {
         event.preventDefault()
         if (currentIndex >= sessionCount - 1) {
-          handlersRef.current.handleRestart()
+          handlersRef.current.handleOpenResetDialog()
         } else {
           handlersRef.current.handleNext()
         }
@@ -255,7 +266,7 @@ function PracticeContent() {
   }, [hasIndexParam, isCompleted, sessionCount, currentIndex, searchParams, router])
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name:root">
       <main className="w-full max-w-2xl">
         <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm min-h-160">
           {/* Practice Header */}
@@ -416,27 +427,40 @@ function PracticeContent() {
                 <ArrowLeft className="size-4" />
                 Prev
               </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={currentIndex >= sessionCount - 1 ? handleOpenResetDialog : handleNext}
-                disabled={
-                  currentIndex >= sessionCount - 1 && !isCompleted(currentWord.id)
-                }
-                className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
-              >
-                {currentIndex >= sessionCount - 1 ? (
-                  <>
-                    Restart
+              {isLastWord ? (
+                <div className="flex gap-0 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleScreenshot}
+                    disabled={!groupEnabled}
+                    aria-label="Take screenshot"
+                    className="gap-1.5 cursor-pointer bg-green-500 hover:bg-green-600 text-white min-w-11 justify-center rounded-none border-r border-zinc-200 dark:border-zinc-700"
+                  >
+                    <Camera className="size-4" />
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleOpenResetDialog}
+                    disabled={!groupEnabled}
+                    aria-label="Restart"
+                    className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-11 justify-center rounded-none"
+                  >
                     <RotateCcw className="size-4" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="size-4" />
-                  </>
-                )}
-              </Button>
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleNext}
+                  className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
+                >
+                  Next
+                  <ArrowRight className="size-4" />
+                </Button>
+              )}
             </div>
           </div>
 

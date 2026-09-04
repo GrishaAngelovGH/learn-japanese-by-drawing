@@ -175,17 +175,17 @@ function Graph({ today, counts }: GraphProps) {
 
       {/* Legend: exact word counts per color, from the same thresholds as the cells */}
       <div
-        className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400"
+        className="flex flex-wrap items-center gap-x-4 gap-y-1 whitespace-nowrap text-xs leading-4 text-zinc-500 dark:text-zinc-400"
         aria-label="Legend: words completed per day"
       >
         <span>Words per day:</span>
         {([0, 1, 2, 3] as Level[]).map((level) => (
           <span key={level} className="inline-flex items-center gap-1.5">
             <span
-              className={`w-3 h-3 rounded ${LEVEL_CLASSES[level].light} ${LEVEL_CLASSES[level].dark}`}
+              className={`w-3 h-3 shrink-0 rounded ${LEVEL_CLASSES[level].light} ${LEVEL_CLASSES[level].dark}`}
               aria-hidden="true"
             />
-            <span>{getLevelRange(level)}</span>
+            <span className="shrink-0">{getLevelRange(level)}</span>
           </span>
         ))}
       </div>

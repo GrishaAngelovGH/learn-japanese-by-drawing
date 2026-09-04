@@ -1,5 +1,7 @@
 "use client"
 
+import { Suspense, useEffect, useRef } from "react"
+import { toast } from "sonner"
 import { useSettings } from "@/contexts/SettingsContext"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
 import { useDailyStreak } from "@/hooks/useDailyStreak"
@@ -9,14 +11,55 @@ import { playSwoosh } from "@/lib/audio"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import useViewTransition from "@/hooks/useViewTransition"
+import { domToPng } from "modern-screenshot"
+import { useSearchParams, useRouter } from "next/navigation"
 
-export default function StreakPage() {
+function StreakContent() {
   const { push } = useViewTransition()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { dailyStreak } = useSettings()
   const { counts, currentStreak, reset } = useDailyStreak()
   const { isCompleted } = useCompletedWords()
+  const hasTakenScreenshot = useRef(false)
 
   const allWordsCompleted = words.every((w) => isCompleted(w.id))
+  const shouldScreenshot = searchParams.get("screenshot") === "true"
+
+  useEffect(() => {
+    if (shouldScreenshot && !hasTakenScreenshot.current) {
+      hasTakenScreenshot.current = true
+
+      // Wait for the page to fully render
+      setTimeout(async () => {
+        const element = document.querySelector("main") as HTMLElement
+        if (!element) {
+          toast.error("Could not find streak page to capture")
+          router.push("/practice")
+          return
+        }
+
+        try {
+          const dataUrl = await domToPng(element, {
+            scale: 2,
+            backgroundColor: "#fafaf9",
+          })
+          const link = document.createElement("a")
+          link.download = `japanese-streak-${new Date().toISOString().split("T")[0]}.png`
+          link.href = dataUrl
+          link.click()
+          toast.success("Screenshot saved!")
+        } catch (error) {
+          console.error("Screenshot error:", error)
+          toast.error("Failed to take screenshot")
+        }
+
+        // Navigate back to practice page
+        router.push("/practice")
+      }, 1000)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldScreenshot])
 
   const handleBack = () => {
     playSwoosh()
@@ -55,7 +98,7 @@ export default function StreakPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 flex flex-col items-center justify-center p-6 antialiased overflow-hidden view-transition-name: root">
       <main className="w-full max-w-6xl">
-        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 shadow-sm space-y-8">
+        <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-8 pb-12 shadow-sm space-y-6">
           <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
@@ -72,10 +115,12 @@ export default function StreakPage() {
             Daily Streak
           </h1>
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold tracking-wide">
-            <span>{currentStreak}</span>
-            <span>•</span>
-            <span className="uppercase">day streak</span>
+          {/* whitespace-nowrap + shrink-0: the screenshot renderer measures text
+              slightly wider than the browser and would otherwise wrap the label. */}
+          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-full whitespace-nowrap leading-none bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-xs font-semibold tracking-wide">
+            <span className="shrink-0">{currentStreak}</span>
+            <span className="shrink-0">•</span>
+            <span className="uppercase shrink-0">day streak</span>
           </div>
 
           <DailyStreakGraph counts={counts} />
@@ -99,5 +144,13 @@ export default function StreakPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function StreakPage() {
+  return (
+    <Suspense fallback={null}>
+      <StreakContent />
+    </Suspense>
   )
 }
