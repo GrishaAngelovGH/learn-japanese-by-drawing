@@ -18,7 +18,7 @@ import { StrokeDrawing } from "@/components/StrokeDrawing"
 import { PracticeStatus } from "@/components/PracticeStatus"
 import Soundwave from "@/components/Soundwave"
 import words from "@/data/words"
-import { playNext, playPrev, playRestart, playSwoosh } from "@/lib/audio"
+import { playNext, playPrev, playSwoosh } from "@/lib/audio"
 import { speakJapanese } from "@/lib/speech"
 import { resolveKnownWords } from "@/lib/romaji"
 import useViewTransition from "@/hooks/useViewTransition"
@@ -143,14 +143,6 @@ function PracticeContent() {
   const handleNext = () => {
     playNext()
     updateIndex(currentIndex + 1)
-    setMode("idle")
-    speech.reset()
-  }
-
-  const handleRestart = () => {
-    playRestart()
-    setCurrentIndex(0)
-    updateIndex(0)
     setMode("idle")
     speech.reset()
   }

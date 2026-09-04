@@ -63,7 +63,11 @@ function StreakContent() {
 
   const handleBack = () => {
     playSwoosh()
-    push("/", "back")
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+    } else {
+      push("/", "back")
+    }
   }
 
   if (!dailyStreak) {
