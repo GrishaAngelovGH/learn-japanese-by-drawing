@@ -5,6 +5,14 @@ import { toast } from "sonner"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, RotateCcw, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { StrokePreview } from "@/components/StrokePreview"
 import { StrokeDrawing } from "@/components/StrokeDrawing"
 import { PracticeStatus } from "@/components/PracticeStatus"
@@ -61,11 +69,36 @@ function PracticeContent() {
     markWritten,
     markPronounced,
     markCelebrated,
-    triggerConfetti
+    triggerConfetti,
+    clearAll
   } = useCompletedWords()
 
   const { dailyStreak } = useSettings()
-  const { recordCompletion } = useDailyStreak()
+  const { recordCompletion, reset } = useDailyStreak()
+
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState<boolean>(false)
+
+  // Once every word in the current session is complete, offer a reset so the
+  // learner can start over with a clean slate (clears both progress and the streak).
+  const allWordsCompleted = words.slice(0, sessionCount).every((w) => isCompleted(w.id))
+
+  const handleOpenResetDialog = () => {
+    setIsResetDialogOpen(true)
+  }
+
+  const handleCloseResetDialog = () => {
+    setIsResetDialogOpen(false)
+  }
+
+  const handleConfirmReset = () => {
+    playSwoosh()
+    reset()
+    clearAll()
+    updateIndex(0)
+    setMode("idle")
+    speech.reset()
+    setIsResetDialogOpen(false)
+  }
 
   const speech = useSpeechRecognition("ja-JP")
   // Browser support can only be known on the client; rendering it during SSR would cause a hydration mismatch.
@@ -386,7 +419,10 @@ function PracticeContent() {
               <Button
                 variant="default"
                 size="sm"
-                onClick={currentIndex >= sessionCount - 1 ? handleRestart : handleNext}
+                onClick={currentIndex >= sessionCount - 1 ? handleOpenResetDialog : handleNext}
+                disabled={
+                  currentIndex >= sessionCount - 1 && !isCompleted(currentWord.id)
+                }
                 className="gap-1.5 cursor-pointer bg-orange-500 hover:bg-orange-600 text-white min-w-22 justify-center"
               >
                 {currentIndex >= sessionCount - 1 ? (
@@ -437,6 +473,26 @@ function PracticeContent() {
           >
             <Volume2 className="size-5" />
           </button>
+
+          {/* Reset confirmation dialog (shown once all words are completed) */}
+          <Dialog open={isResetDialogOpen} onOpenChange={(open) => setIsResetDialogOpen(open)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Reset streak?</DialogTitle>
+                <DialogDescription>
+                  This will clear your daily streak and all completed-word progress. You&apos;ll start over from the first word.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={handleCloseResetDialog}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handleConfirmReset}>
+                  Reset
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </main>
     </div>
