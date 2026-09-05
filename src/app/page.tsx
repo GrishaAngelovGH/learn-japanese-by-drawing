@@ -48,7 +48,10 @@ export default function Home() {
 
           <div className="space-y-6 pt-2">
             {/* Slider Section */}
-            <div className="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700">
+            <div
+              data-tour="session-length"
+              className="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700"
+            >
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-zinc-700 dark:text-zinc-300">
                   Session Length
@@ -80,6 +83,7 @@ export default function Home() {
 
             {/* Start Button */}
             <Button
+              data-tour="start-practice"
               onClick={handleStart}
               className="w-full h-11 text-base font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-sm transition-colors cursor-pointer"
             >

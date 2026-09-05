@@ -383,6 +383,7 @@ function PracticeContent() {
           <div className="mt-6 flex flex-wrap justify-between gap-2">
             <div className="flex gap-2">
               <Button
+                data-tour="preview-stroke"
                 variant="outline"
                 size="sm"
                 onClick={() => setMode((prev) => (prev === "preview" ? "idle" : "preview"))}
@@ -391,6 +392,7 @@ function PracticeContent() {
                 {mode === "preview" ? "Hide stroke order" : "Preview stroke order"}
               </Button>
               <Button
+                data-tour="learn-to-draw"
                 variant="outline"
                 size="sm"
                 onClick={() => setMode((prev) => (prev === "draw" ? "idle" : "draw"))}
@@ -399,6 +401,7 @@ function PracticeContent() {
                 {mode === "draw" ? "Stop drawing" : "Learn to draw"}
               </Button>
               <Button
+                data-tour="speak"
                 variant="outline"
                 size="sm"
                 onClick={speech.start}
@@ -408,7 +411,7 @@ function PracticeContent() {
                 Speak
               </Button>
             </div>
-            <div className="flex gap-2 pr-12">
+            <div data-tour="word-nav" className="flex gap-2 pr-12">
               <Button
                 variant="outline"
                 size="sm"
@@ -479,6 +482,7 @@ function PracticeContent() {
 
           {/* Play pronunciation button (bottom-right of card) */}
           <button
+            data-tour="listen"
             onClick={handleSpeak}
             disabled={isSpeaking}
             aria-label="Listen to pronunciation"

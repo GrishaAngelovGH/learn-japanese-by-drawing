@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SettingsModal } from "@/components/settings";
 import { Toaster } from "sonner";
 import { Background } from "@/components/Background";
+import { AppTour } from "@/components/AppTour";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import useViewTransition from "@/hooks/useViewTransition";
 
@@ -37,6 +38,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
           <ThemeProvider>
             <div className="relative min-h-full z-10 cursor-default">
               <button
+                data-tour="settings"
                 onClick={() => setSettingsOpen(true)}
                 aria-label="Settings"
                 className="fixed top-6 right-6 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
@@ -44,6 +46,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
                 <Settings className="size-4" />
               </button>
               <button
+                data-tour="streak"
                 onClick={() => push("/streak", "forward")}
                 aria-label="Streak"
                 className="fixed top-18 right-6 z-50 flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
@@ -51,6 +54,7 @@ export function LayoutClient({ children }: { children: React.ReactNode }) {
                 <Flame className="size-4" />
               </button>
               {children}
+              <AppTour />
               <Toaster position="bottom-center" />
               <SettingsModal
                 isOpen={settingsOpen}
