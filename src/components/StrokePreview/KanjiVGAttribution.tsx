@@ -27,7 +27,7 @@ export function KanjiVGAttribution() {
       >
         CC BY-SA 3.0
       </a>
-      . Adapted: strokes shown one at a time.
+      . Strokes are animated and used for scoring, not otherwise changed.
     </p>
   )
 }

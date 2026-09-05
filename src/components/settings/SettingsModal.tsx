@@ -1,6 +1,6 @@
 "use client"
 
-import { X, Image as ImageIcon, Sun, Moon, Trash2, Flame } from "lucide-react"
+import { X, Image as ImageIcon, Sun, Moon, Trash2, Flame, Info } from "lucide-react"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 import { useEffect } from "react"
@@ -8,6 +8,11 @@ import { useEffect } from "react"
 import { useSettings } from "@/contexts/SettingsContext"
 import { BACKGROUND_OPTIONS } from "@/data/background-images"
 import { useCompletedWords } from "@/hooks/useCompletedWords"
+import { KanjiVGAttribution } from "@/components/StrokePreview/KanjiVGAttribution"
+
+const EXTERNAL = { target: "_blank", rel: "noopener noreferrer" } as const
+const LINK =
+  "underline underline-offset-2 hover:text-zinc-700 dark:hover:text-zinc-200"
 
 type SettingsModalProps = {
   isOpen: boolean
@@ -43,7 +48,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             Settings
@@ -165,6 +170,37 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <Trash2 className="size-4" />
             Clear all progress
           </button>
+
+          {/* Credits */}
+          <details className="group text-xs text-zinc-500 dark:text-zinc-400">
+            <summary className="flex cursor-pointer select-none items-center justify-center gap-1.5 py-1 hover:text-zinc-700 dark:hover:text-zinc-200">
+              <Info className="size-3.5" />
+              About &amp; credits
+            </summary>
+            <div className="mt-2 space-y-2 text-center leading-relaxed">
+              <KanjiVGAttribution />
+              <p>
+                Background photos from{" "}
+                <a href="https://www.pexels.com" {...EXTERNAL} className={LINK}>
+                  Pexels
+                </a>
+                . Font:{" "}
+                <a href="https://vercel.com/font" {...EXTERNAL} className={LINK}>
+                  Geist
+                </a>{" "}
+                (SIL Open Font License 1.1).
+              </p>
+              <p>
+                Built with Next.js, React, Tailwind CSS, shadcn/ui and other
+                open-source libraries.
+              </p>
+              <p>
+                Speech recognition is provided by your browser. In Chrome and
+                Edge, your voice is processed by the browser vendor&apos;s
+                online service.
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </div>

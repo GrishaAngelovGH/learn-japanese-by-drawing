@@ -195,4 +195,25 @@ describe("SettingsModal", () => {
 
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it("shows credits for KanjiVG, Pexels and Geist", () => {
+    setup()
+
+    expect(screen.getByText("About & credits")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "KanjiVG" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "CC BY-SA 3.0" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Pexels" })).toHaveAttribute(
+      "href",
+      "https://www.pexels.com"
+    )
+    expect(screen.getByRole("link", { name: "Geist" })).toBeInTheDocument()
+  })
+
+  it("opens credit links safely in a new tab", () => {
+    setup()
+
+    const link = screen.getByRole("link", { name: "Pexels" })
+    expect(link).toHaveAttribute("target", "_blank")
+    expect(link).toHaveAttribute("rel", "noopener noreferrer")
+  })
 })
